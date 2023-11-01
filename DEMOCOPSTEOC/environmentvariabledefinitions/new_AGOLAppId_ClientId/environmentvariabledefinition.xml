@@ -1,0 +1,11 @@
+<environmentvariabledefinition schemaname="new_AGOLAppId_ClientId">
+  <defaultvalue>ceetVDjSDjdo6hKz</defaultvalue>
+  <displayname default="VTEOC-AGOLAppId_ClientId">
+    <label description="VTEOC-AGOLAppId_ClientId" languagecode="1033" />
+  </displayname>
+  <introducedversion>1.1.0.24</introducedversion>
+  <iscustomizable>1</iscustomizable>
+  <isrequired>0</isrequired>
+  <secretstore>0</secretstore>
+  <type>100000000</type>
+</environmentvariabledefinition>

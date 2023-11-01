@@ -1,0 +1,37 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<savedqueries xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <savedquery>
+    <IsCustomizable>1</IsCustomizable>
+    <CanBeDeleted>0</CanBeDeleted>
+    <isquickfindquery>0</isquickfindquery>
+    <isprivate>0</isprivate>
+    <isdefault>1</isdefault>
+    <savedqueryid>{ed27d680-32b2-4451-b97b-f14f0bd23333}</savedqueryid>
+    <layoutxml>
+      <grid name="resultset" jump="democop_name" select="1" icon="1" preview="1">
+        <row name="result" id="democop_bulkusersid">
+          <cell name="democop_name" width="300" />
+          <cell name="createdon" width="125" />
+        </row>
+      </grid>
+    </layoutxml>
+    <querytype>0</querytype>
+    <fetchxml>
+      <fetch version="1.0" mapping="logical">
+        <entity name="democop_bulkusers">
+          <attribute name="democop_bulkusersid" />
+          <attribute name="democop_name" />
+          <attribute name="createdon" />
+          <order attribute="democop_name" descending="false" />
+          <filter type="and">
+            <condition attribute="statecode" operator="eq" value="0" />
+          </filter>
+        </entity>
+      </fetch>
+    </fetchxml>
+    <IntroducedVersion>1.0</IntroducedVersion>
+    <LocalizedNames>
+      <LocalizedName description="Active BulkUsers" languagecode="1033" />
+    </LocalizedNames>
+  </savedquery>
+</savedqueries>

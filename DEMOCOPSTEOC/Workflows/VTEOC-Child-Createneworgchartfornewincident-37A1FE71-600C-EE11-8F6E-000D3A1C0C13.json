@@ -1,0 +1,414 @@
+{
+  "properties": {
+    "connectionReferences": {
+      "shared_sharepointonline": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "new_sharedsharepointonline_1a1dc"
+        },
+        "api": {
+          "name": "shared_sharepointonline"
+        }
+      },
+      "shared_excelonlinebusiness": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "new_sharedexcelonlinebusiness_13131"
+        },
+        "api": {
+          "name": "shared_excelonlinebusiness"
+        }
+      },
+      "shared_office365_1": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "new_sharedoffice365_23120"
+        },
+        "api": {
+          "name": "shared_office365"
+        }
+      },
+      "shared_commondataserviceforapps": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "democop_sharedcommondataserviceforapps_70956"
+        },
+        "api": {
+          "name": "shared_commondataserviceforapps"
+        }
+      }
+    },
+    "definition": {
+      "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+      "contentVersion": "1.0.0.0",
+      "parameters": {
+        "$connections": {
+          "defaultValue": {},
+          "type": "Object"
+        },
+        "$authentication": {
+          "defaultValue": {},
+          "type": "SecureObject"
+        },
+        "VTEOC-FailureNotificationEmail (new_FailureNotificationEmail)": {
+          "defaultValue": "shawk@devgh.onmicrosoft.com",
+          "type": "String",
+          "metadata": {
+            "schemaName": "new_FailureNotificationEmail"
+          }
+        },
+        "VTEOC-SharepointSite (new_TEOCDEMOSharepointSite)": {
+          "defaultValue": "https://devgh.sharepoint.com/sites/TEOCDemo",
+          "type": "String",
+          "metadata": {
+            "schemaName": "new_TEOCDEMOSharepointSite"
+          }
+        }
+      },
+      "triggers": {
+        "manual": {
+          "metadata": {
+            "operationMetadataId": "3082cfd9-69d1-48ca-a5d3-dc51c24cc02e"
+          },
+          "type": "Request",
+          "kind": "Button",
+          "inputs": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "text": {
+                  "title": "TeamName",
+                  "type": "string",
+                  "x-ms-dynamically-added": true,
+                  "description": "Please enter your input",
+                  "x-ms-content-hint": "TEXT"
+                },
+                "text_1": {
+                  "title": "TEOCNumber",
+                  "type": "string",
+                  "x-ms-dynamically-added": true,
+                  "description": "Please enter your input",
+                  "x-ms-content-hint": "TEXT"
+                },
+                "text_2": {
+                  "title": "SharePointURL",
+                  "type": "string",
+                  "x-ms-dynamically-added": true,
+                  "description": "Please enter your input",
+                  "x-ms-content-hint": "TEXT"
+                }
+              },
+              "required": [
+                "text",
+                "text_1",
+                "text_2"
+              ]
+            }
+          }
+        }
+      },
+      "actions": {
+        "Initialize_varIncidentDirectory": {
+          "runAfter": {},
+          "metadata": {
+            "operationMetadataId": "167f4fbc-1c78-4787-9074-9a74548917a7"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "varIncidentDirectory",
+                "type": "string",
+                "value": "@triggerBody()['text']"
+              }
+            ]
+          }
+        },
+        "Initialize_varIncidentFileName": {
+          "runAfter": {
+            "Initialize_varIncidentDirectory": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "bdba7450-34e3-4048-b2dd-faf931048ac2"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "varIncidentFileName",
+                "type": "string",
+                "value": "@{triggerBody()['text']}.xlsx"
+              }
+            ]
+          }
+        },
+        "Get_excel_template": {
+          "runAfter": {
+            "Initialize_varIncidentFileName": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "%252fShared%2bDocuments%252fvisio%2borg%2bchart%2bexample.xlsx": "/Shared Documents/visio org chart example.xlsx",
+            "operationMetadataId": "362b1149-aae4-4be5-9049-8874790ac094"
+          },
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_sharepointonline",
+              "operationId": "GetFileContent",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline"
+            },
+            "parameters": {
+              "dataset": "@parameters('VTEOC-SharepointSite (new_TEOCDEMOSharepointSite)')",
+              "id": "%252fShared%2bDocuments%252fvisio%2borg%2bchart%2bexample.xlsx",
+              "inferContentType": true
+            },
+            "authentication": {
+              "type": "Raw",
+              "value": "@json(decodeBase64(triggerOutputs().headers['X-MS-APIM-Tokens']))['$ConnectionKey']"
+            }
+          }
+        },
+        "Create_incident_directory": {
+          "runAfter": {
+            "List_rows": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "d34efb47-998d-4743-97ac-b451f318fdf9"
+          },
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_sharepointonline",
+              "operationId": "CreateNewFolder",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline"
+            },
+            "parameters": {
+              "dataset": "@parameters('VTEOC-SharepointSite (new_TEOCDEMOSharepointSite)')",
+              "table": "4c31de57-de41-4113-9d9d-b514adbbeaa2",
+              "parameters/path": "@variables('varIncidentDirectory')"
+            },
+            "authentication": {
+              "type": "Raw",
+              "value": "@json(decodeBase64(triggerOutputs().headers['X-MS-APIM-Tokens']))['$ConnectionKey']"
+            }
+          }
+        },
+        "Create_Blank_incident_file": {
+          "runAfter": {
+            "Create_incident_directory": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "f06b2767-0513-4046-aa9d-3f751c6704eb"
+          },
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_sharepointonline",
+              "operationId": "CreateFile",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline"
+            },
+            "parameters": {
+              "dataset": "@parameters('VTEOC-SharepointSite (new_TEOCDEMOSharepointSite)')",
+              "folderPath": "/Shared Documents/@{variables('varIncidentDirectory')}",
+              "name": "@variables('varIncidentFileName')",
+              "body": "@body('Get_excel_template')"
+            },
+            "authentication": {
+              "type": "Raw",
+              "value": "@json(decodeBase64(triggerOutputs().headers['X-MS-APIM-Tokens']))['$ConnectionKey']"
+            }
+          }
+        },
+        "Apply_to_each": {
+          "foreach": "@outputs('List_rows')?['body/value']",
+          "actions": {
+            "Compose": {
+              "runAfter": {},
+              "metadata": {
+                "operationMetadataId": "436252c0-4e0d-4012-ab42-c3ea6a60c584"
+              },
+              "type": "Compose",
+              "inputs": {
+                "Name": "@{items('Apply_to_each')?['crb97_name']}",
+                "Title": "@{items('Apply_to_each')?['crb97_role']}",
+                "Employee ID": "@{items('Apply_to_each')?['crb97_role']}",
+                "Manager ID": "@{items('Apply_to_each')?['crb97_reportsto']}",
+                "Role Type": "@{items('Apply_to_each')?['crb97_role']}",
+                "Incident": "@{items('Apply_to_each')?['crb97_title']}",
+                "Email": "@{items('Apply_to_each')?['crb97_email']}",
+                "Phone Number": "@{items('Apply_to_each')?['crb97_phonenumber']}"
+              }
+            },
+            "Add_a_row_into_a_table": {
+              "runAfter": {
+                "Compose": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "2bf004b1-d9d7-47de-88c3-96f703f9d76c",
+                "tableId": "Table2"
+              },
+              "type": "OpenApiConnection",
+              "inputs": {
+                "host": {
+                  "connectionName": "shared_excelonlinebusiness",
+                  "operationId": "AddRowV2",
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_excelonlinebusiness"
+                },
+                "parameters": {
+                  "source": "@parameters('VTEOC-SharepointSite (new_TEOCDEMOSharepointSite)')",
+                  "drive": "b!WvktEExLcUSJ9laMqcxJMTnP9SfTCBdPrW7aSxepMPlX3jFMQd4TQZ2dtRStu-qi",
+                  "file": "/Shared%20Documents/@{variables('varIncidentDirectory')}/@{variables('varIncidentFileName')}",
+                  "table": "Table2",
+                  "item": "@outputs('Compose')"
+                },
+                "authentication": {
+                  "type": "Raw",
+                  "value": "@json(decodeBase64(triggerOutputs().headers['X-MS-APIM-Tokens']))['$ConnectionKey']"
+                }
+              }
+            }
+          },
+          "runAfter": {
+            "Create_Blank_incident_file": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "ef3920c1-7f52-4bb5-b89b-3b9b5bcc61e4"
+          },
+          "type": "Foreach"
+        },
+        "Respond_to_a_PowerApp_or_flow": {
+          "runAfter": {
+            "Apply_to_each": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "cf7908c3-34e8-4b47-8955-8a84042002a0"
+          },
+          "type": "Response",
+          "kind": "PowerApp",
+          "inputs": {
+            "statusCode": 200,
+            "body": {
+              "status": "Completed"
+            },
+            "schema": {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "title": "Status",
+                  "x-ms-dynamically-added": true,
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "Scope_Failure_Notifications": {
+          "actions": {
+            "Compose_Flow_run_link": {
+              "runAfter": {},
+              "metadata": {
+                "operationMetadataId": "304e2c8e-c6d8-4bd0-ac4d-57951dd57763"
+              },
+              "type": "Compose",
+              "inputs": "@concat('https://us.flow.microsoft.com/manage/environments/', workflow()?['tags']?['environmentName'], '/flows/', workflow()?['name'], '/runs/', workflow()?['run']['name'])"
+            },
+            "Send_an_email_(V2)_Failure_notification": {
+              "runAfter": {
+                "Compose_Flow_run_link": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "bd4b39c2-3462-4a00-b21d-d8ac056f00d2"
+              },
+              "type": "OpenApiConnection",
+              "inputs": {
+                "host": {
+                  "connectionName": "shared_office365_1",
+                  "operationId": "SendEmailV2",
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_office365"
+                },
+                "parameters": {
+                  "emailMessage/To": "@parameters('VTEOC-FailureNotificationEmail (new_FailureNotificationEmail)')",
+                  "emailMessage/Subject": "Your @{workflow()?['tags']?['flowDisplayName']} flow failed",
+                  "emailMessage/Body": "<p>Check your flow.<br>\n<br>\n<a href=\"@{outputs('Compose_Flow_run_link')}\">Flow Run Link</a>&nbsp;</p>"
+                },
+                "authentication": {
+                  "type": "Raw",
+                  "value": "@json(decodeBase64(triggerOutputs().headers['X-MS-APIM-Tokens']))['$ConnectionKey']"
+                }
+              }
+            },
+            "Terminate_Mark_flow_run_failure": {
+              "runAfter": {
+                "Send_an_email_(V2)_Failure_notification": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "c3050a38-c258-4145-b3fa-4d5e80d70b67"
+              },
+              "type": "Terminate",
+              "inputs": {
+                "runStatus": "Failed"
+              }
+            }
+          },
+          "runAfter": {
+            "Respond_to_a_PowerApp_or_flow": [
+              "Failed",
+              "Skipped"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "072e1b99-2b98-4cdc-bb50-f9ef10d9a137"
+          },
+          "type": "Scope",
+          "description": "Set this Scope's Configure run after settings to \"has failed\", \"is skipped\", and \"has timed out\"."
+        },
+        "List_rows": {
+          "runAfter": {
+            "Get_excel_template": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "e20b50a9-1446-4ed1-b745-8ab280f1c985"
+          },
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_commondataserviceforapps",
+              "operationId": "ListRecords",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
+            },
+            "parameters": {
+              "entityName": "crb97_staffingliststds",
+              "$filter": "crb97_title eq '@{triggerBody()['text']}'"
+            },
+            "authentication": {
+              "type": "Raw",
+              "value": "@json(decodeBase64(triggerOutputs().headers['X-MS-APIM-Tokens']))['$ConnectionKey']"
+            }
+          }
+        }
+      }
+    },
+    "templateName": ""
+  },
+  "schemaVersion": "1.0.0.0"
+}

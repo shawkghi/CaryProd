@@ -1,0 +1,589 @@
+{
+  "properties": {
+    "connectionReferences": {
+      "shared_arcgis_1": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "new_sharedarcgis_6cb2d"
+        },
+        "api": {
+          "name": "shared_arcgis"
+        }
+      },
+      "shared_office365_1": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "new_sharedoffice365_23120"
+        },
+        "api": {
+          "name": "shared_office365"
+        }
+      }
+    },
+    "definition": {
+      "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+      "contentVersion": "1.0.0.0",
+      "parameters": {
+        "$connections": {
+          "defaultValue": {},
+          "type": "Object"
+        },
+        "$authentication": {
+          "defaultValue": {},
+          "type": "SecureObject"
+        },
+        "FailureNotificationEmail (new_FailureNotificationEmail)": {
+          "defaultValue": "shawk@devgh.onmicrosoft.com",
+          "type": "String",
+          "metadata": {
+            "schemaName": "new_FailureNotificationEmail"
+          }
+        },
+        "Featurelayer (new_Featurelayer)": {
+          "defaultValue": "2f7c514e39f34e2ea20ecbdfd6b744cclayerId0",
+          "type": "String",
+          "metadata": {
+            "schemaName": "new_Featurelayer"
+          }
+        },
+        "AppIDURL (new_AppIDURL)": {
+          "defaultValue": "f7d47c4ec9024ecd86fc0a6c152036dd",
+          "type": "String",
+          "metadata": {
+            "schemaName": "new_AppIDURL"
+          }
+        }
+      },
+      "triggers": {
+        "manual": {
+          "metadata": {
+            "operationMetadataId": "36820716-f5ad-46f7-92ee-2fcd30d5dbac"
+          },
+          "type": "Request",
+          "kind": "Button",
+          "inputs": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "text": {
+                  "title": "IncidentName",
+                  "type": "string",
+                  "x-ms-dynamically-added": true,
+                  "description": "Please enter your input",
+                  "x-ms-content-hint": "TEXT"
+                },
+                "text_1": {
+                  "title": "team_id",
+                  "type": "string",
+                  "x-ms-dynamically-added": true,
+                  "description": "Please enter your input",
+                  "x-ms-content-hint": "TEXT"
+                }
+              },
+              "required": [
+                "text",
+                "text_1"
+              ]
+            }
+          }
+        }
+      },
+      "actions": {
+        "BaseURLVarible": {
+          "runAfter": {
+            "Create_a_record_in_a_feature_layer": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "b9ef195c-728c-412c-a249-f706da4e2553"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "BaseURL",
+                "type": "string",
+                "value": "https://experience.arcgis.com/experience/"
+              }
+            ]
+          }
+        },
+        "AppIdURL": {
+          "runAfter": {
+            "BaseURLVarible": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "00b67faf-4b43-44dc-8cb5-d0b81b327de1"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "AppIdURL",
+                "type": "string",
+                "value": "@parameters('AppIDURL (new_AppIDURL)')"
+              }
+            ]
+          }
+        },
+        "Page_ERG-Report-Submittal": {
+          "runAfter": {
+            "AppIdURL": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "e40905b6-c0d3-45f0-bb22-f43798bd07d0"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "ERG-Report-Submittal",
+                "type": "string",
+                "value": "ERG-Updates"
+              }
+            ]
+          }
+        },
+        "Page_Objective-Planning": {
+          "runAfter": {
+            "Page_ERG-Report-Submittal": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "13b2ac94-d7f7-400a-9f7a-da3f79690149"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "Objective-Planning",
+                "type": "string",
+                "value": "Objective-Planning"
+              }
+            ]
+          }
+        },
+        "Page_Sit-Unit-Review": {
+          "runAfter": {
+            "Page_Objective-Planning": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "a76a6b3f-fd23-4dab-bb34-b9ae6d7fea8d"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "Sit-Unit-Review",
+                "type": "string",
+                "value": "Sit-Unit-Review"
+              }
+            ]
+          }
+        },
+        "Page_Manage-Report-Period": {
+          "runAfter": {
+            "Page_Sit-Unit-Review": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "268af6f0-3909-4096-8ee3-8b2a731183d8"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "Manage-Report-Period",
+                "type": "string",
+                "value": "Manage-Report-Period"
+              }
+            ]
+          }
+        },
+        "FilterTemplate": {
+          "runAfter": {
+            "Page_Edit-Incident": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "ba53c28f-b8dc-4008-b3cb-549e48c099dc"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "FilterTemplate",
+                "type": "string",
+                "value": "?data_id=IncidentFeaturesMap-IncidentFeatures:<objectIDx>&data_filter=IncidentFeaturesMap-IncidentFeatures:team_id='<team_idX>',dataSource_3-0:team_id='<team_idX>',dataSource_3-1:tem_id_subobj='<team_idX>',dataSource_9-ERGReports:team_id='<team_idX>',dataSource_8-ReportingPeriods:team_id='<team_idX>',IncidentPolyMap-IncidentPolys:team_id_polys='<team_idX>'"
+              }
+            ]
+          }
+        },
+        "FinalFilterTemplate": {
+          "runAfter": {
+            "Set_variable": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "2e8dffa4-6ea2-42d5-82b0-d0182894198b"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "QueryParamsFinal",
+                "type": "string"
+              }
+            ]
+          }
+        },
+        "SetFinalFilterTemplate": {
+          "runAfter": {
+            "FinalFilterTemplate": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "7cb7517e-1aa7-4034-aa5e-5380b0090ad6"
+          },
+          "type": "SetVariable",
+          "inputs": {
+            "name": "QueryParamsFinal",
+            "value": "@{replace(variables('FilterByTeamid'), '<objectIDx>', string(outputs('Create_a_record_in_a_feature_layer')?['body']['objectId']))}"
+          }
+        },
+        "DashboardURL": {
+          "runAfter": {
+            "SetFinalFilterTemplate": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "a9b3c8cc-cd84-4bb3-8f0e-5be584e65aa2"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "DashboardURL",
+                "type": "string",
+                "value": "@{concat(variables('BaseURL'), variables('AppIdURL'), variables('QueryParamsFinal'))}"
+              }
+            ]
+          }
+        },
+        "Objective-PlanningURL": {
+          "runAfter": {
+            "DashboardURL": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "b9207aca-dbdc-40e8-bdb0-a0d2c3934d90"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "Objective-PlanningURL",
+                "type": "string",
+                "value": "@{concat(variables('BaseURL'), variables('AppIdURL'), '/page/', variables('Objective-Planning'), variables('QueryParamsFinal'))}"
+              }
+            ]
+          }
+        },
+        "ERG-Report-SubmittalURL": {
+          "runAfter": {
+            "Objective-PlanningURL": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "66e772a0-dfae-45dc-bb68-2ad786cdc7c5"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "ERG-Report-SubmittalURL",
+                "type": "string",
+                "value": "@{concat(variables('BaseURL'), variables('AppIdURL'), '/page/', variables('ERG-Report-Submittal'), variables('QueryParamsFinal'))}"
+              }
+            ]
+          }
+        },
+        "Sit-Unit-ReviewURL": {
+          "runAfter": {
+            "ERG-Report-SubmittalURL": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "517d1049-645a-40bc-8722-dd2dba719a99"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "Sit-Unit-ReviewURL",
+                "type": "string",
+                "value": "@{concat(variables('BaseURL'), variables('AppIdURL'), '/page/', variables('Sit-Unit-Review'), variables('QueryParamsFinal'))}"
+              }
+            ]
+          }
+        },
+        "Manage-Report-Period": {
+          "runAfter": {
+            "Sit-Unit-ReviewURL": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "19ea669d-d402-492e-a132-7ff560b3b4de"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "Manage-Report-PeriodURL",
+                "type": "string",
+                "value": "@{concat(variables('BaseURL'), variables('AppIdURL'), '/page/', variables('Manage-Report-Period'), variables('QueryParamsFinal'))}"
+              }
+            ]
+          }
+        },
+        "Respond_to_a_PowerApp_or_flow": {
+          "runAfter": {
+            "Edit-IncidentURL": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "9ae4dbf0-7c69-49d1-9e31-3ef96db678c8"
+          },
+          "type": "Response",
+          "kind": "PowerApp",
+          "inputs": {
+            "statusCode": 200,
+            "body": {
+              "sit-unit-reviewurl": "@variables('Sit-Unit-ReviewURL')",
+              "erg-report-submittalurl": "@variables('ERG-Report-SubmittalURL')",
+              "objective-planningurl": "@variables('Objective-PlanningURL')",
+              "dashboardurl": "@variables('DashboardURL')",
+              "manage-report-periodurl": "@variables('Manage-Report-PeriodURL')",
+              "edit-incidenturl": "@variables('Edit-IncidentURL')"
+            },
+            "schema": {
+              "type": "object",
+              "properties": {
+                "sit-unit-reviewurl": {
+                  "title": "Sit-Unit-ReviewURL",
+                  "x-ms-dynamically-added": true,
+                  "type": "string"
+                },
+                "erg-report-submittalurl": {
+                  "title": "ERG-Report-SubmittalURL",
+                  "x-ms-dynamically-added": true,
+                  "type": "string"
+                },
+                "objective-planningurl": {
+                  "title": "Objective-PlanningURL",
+                  "x-ms-dynamically-added": true,
+                  "type": "string"
+                },
+                "dashboardurl": {
+                  "title": "DashboardURL",
+                  "x-ms-dynamically-added": true,
+                  "type": "string"
+                },
+                "manage-report-periodurl": {
+                  "title": "Manage-Report-PeriodURL",
+                  "x-ms-dynamically-added": true,
+                  "type": "string"
+                },
+                "edit-incidenturl": {
+                  "title": "Edit-IncidentURL",
+                  "x-ms-dynamically-added": true,
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "Create_a_record_in_a_feature_layer": {
+          "runAfter": {},
+          "metadata": {
+            "operationMetadataId": "3aef0dbb-9339-46b0-a507-7a304f261d28"
+          },
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_arcgis_1",
+              "operationId": "CreateItemInFeatureLayer",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_arcgis"
+            },
+            "parameters": {
+              "contentFilter": "my content",
+              "userLayer": "@parameters('Featurelayer (new_Featurelayer)')",
+              "data/geometry": "{\n  \"x\": 0,\n  \"y\": 0,\n  \"spatialReference\": {\n    \"wkid\": 4326\n  }\n}",
+              "data/incident_name": "@triggerBody()['text']",
+              "data/team_id": "@triggerBody()['text_1']"
+            },
+            "authentication": "@parameters('$authentication')"
+          }
+        },
+        "Initialize_variable": {
+          "runAfter": {
+            "FilterTemplate": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "40a5a968-40cd-456b-9847-3e81aaa9568d"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "FilterByTeamid",
+                "type": "string"
+              }
+            ]
+          }
+        },
+        "Set_variable": {
+          "runAfter": {
+            "Initialize_variable": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "cfecf4cb-0402-4af6-86f8-fd8d5c56a4bf"
+          },
+          "type": "SetVariable",
+          "inputs": {
+            "name": "FilterByTeamid",
+            "value": "@{replace(variables('FilterTemplate'),'<team_idX>',triggerBody()['text_1'])}"
+          }
+        },
+        "Scope_Failure_Notifications": {
+          "actions": {
+            "Compose_Flow_run_link": {
+              "runAfter": {},
+              "metadata": {
+                "operationMetadataId": "304e2c8e-c6d8-4bd0-ac4d-57951dd57763"
+              },
+              "type": "Compose",
+              "inputs": "@concat('https://us.flow.microsoft.com/manage/environments/', workflow()?['tags']?['environmentName'], '/flows/', workflow()?['name'], '/runs/', workflow()?['run']['name'])"
+            },
+            "Send_an_email_(V2)_Failure_notification": {
+              "runAfter": {
+                "Compose_Flow_run_link": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "bd4b39c2-3462-4a00-b21d-d8ac056f00d2"
+              },
+              "type": "OpenApiConnection",
+              "inputs": {
+                "host": {
+                  "connectionName": "shared_office365_1",
+                  "operationId": "SendEmailV2",
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_office365"
+                },
+                "parameters": {
+                  "emailMessage/To": "@parameters('FailureNotificationEmail (new_FailureNotificationEmail)')",
+                  "emailMessage/Subject": "Your @{workflow()?['tags']?['flowDisplayName']} flow failed",
+                  "emailMessage/Body": "<p>Check your flow.<br>\n<br>\n<a href=\"@{outputs('Compose_Flow_run_link')}\">Flow Run Link</a>&nbsp;</p>"
+                },
+                "authentication": {
+                  "type": "Raw",
+                  "value": "@json(decodeBase64(triggerOutputs().headers['X-MS-APIM-Tokens']))['$ConnectionKey']"
+                }
+              }
+            },
+            "Terminate_Mark_flow_run_failure": {
+              "runAfter": {
+                "Send_an_email_(V2)_Failure_notification": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "c3050a38-c258-4145-b3fa-4d5e80d70b67"
+              },
+              "type": "Terminate",
+              "inputs": {
+                "runStatus": "Failed"
+              }
+            }
+          },
+          "runAfter": {
+            "Respond_to_a_PowerApp_or_flow": [
+              "Failed",
+              "Skipped"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "072e1b99-2b98-4cdc-bb50-f9ef10d9a137"
+          },
+          "type": "Scope",
+          "description": "Set this Scope's Configure run after settings to \"has failed\", \"is skipped\", and \"has timed out\"."
+        },
+        "Page_Edit-Incident": {
+          "runAfter": {
+            "Page_Manage-Report-Period": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "a2f733a4-88d9-4793-aff2-a26ea7db2575"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "Edit-Incident",
+                "type": "string",
+                "value": "Edit-Incident"
+              }
+            ]
+          }
+        },
+        "Edit-IncidentURL": {
+          "runAfter": {
+            "Manage-Report-Period": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "b8d35ae8-7031-4662-babd-12704b923546"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "Edit-IncidentURL",
+                "type": "string",
+                "value": "@{concat(variables('BaseURL'), variables('AppIdURL'), '/page/', variables('Edit-Incident'), variables('QueryParamsFinal'))}"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "templateName": ""
+  },
+  "schemaVersion": "1.0.0.0"
+}

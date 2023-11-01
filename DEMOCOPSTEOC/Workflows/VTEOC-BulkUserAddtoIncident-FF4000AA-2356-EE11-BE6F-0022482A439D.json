@@ -1,0 +1,465 @@
+{
+  "properties": {
+    "connectionReferences": {
+      "shared_commondataserviceforapps": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "democop_sharedcommondataserviceforapps_70956"
+        },
+        "api": {
+          "name": "shared_commondataserviceforapps"
+        }
+      },
+      "shared_teams": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "new_sharedteams_cadd0"
+        },
+        "api": {
+          "name": "shared_teams"
+        }
+      },
+      "shared_office365users": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "new_sharedoffice365users_8f9bf"
+        },
+        "api": {
+          "name": "shared_office365users"
+        }
+      }
+    },
+    "definition": {
+      "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+      "contentVersion": "1.0.0.0",
+      "parameters": {
+        "$connections": {
+          "defaultValue": {},
+          "type": "Object"
+        },
+        "$authentication": {
+          "defaultValue": {},
+          "type": "SecureObject"
+        }
+      },
+      "triggers": {
+        "When_a_row_is_added,_modified_or_deleted": {
+          "metadata": {
+            "operationMetadataId": "f9cc60a8-c54d-4735-826b-3ab4a49a9919"
+          },
+          "type": "OpenApiConnectionWebhook",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_commondataserviceforapps",
+              "operationId": "SubscribeWebhookTrigger",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
+            },
+            "parameters": {
+              "subscriptionRequest/message": 1,
+              "subscriptionRequest/entityname": "democop_bulkusers",
+              "subscriptionRequest/scope": 4
+            },
+            "authentication": "@parameters('$authentication')"
+          }
+        }
+      },
+      "actions": {
+        "Download_a_file_or_an_image": {
+          "runAfter": {},
+          "metadata": {
+            "operationMetadataId": "7bb90ae2-36f8-4ee3-8a9a-91eb9f1feb7c"
+          },
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_commondataserviceforapps",
+              "operationId": "GetEntityFileImageFieldContent",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
+            },
+            "parameters": {
+              "entityName": "democop_bulkuserses",
+              "recordId": "@triggerOutputs()?['body/democop_bulkusersid']",
+              "fileImageFieldName": "democop_bulkusercsv"
+            },
+            "authentication": "@parameters('$authentication')"
+          }
+        },
+        "FileContent": {
+          "runAfter": {
+            "List_all_tags_for_a_team_2": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "c5d4a8e6-70a7-4d6a-b701-04e034880cd3"
+          },
+          "type": "Compose",
+          "inputs": "@base64ToString(body('Download_a_file_or_an_image')?['$content'])"
+        },
+        "SplitFileContent": {
+          "runAfter": {
+            "FileContent": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "67940547-d235-4498-b6da-8d5e8b0525fb"
+          },
+          "type": "Compose",
+          "inputs": "@split(outputs('FileContent'),decodeUriComponent('%0A'))"
+        },
+        "Apply_to_each": {
+          "foreach": "@skip(outputs('SplitFileContent'),1)",
+          "actions": {
+            "SplitLinesForJson": {
+              "runAfter": {},
+              "metadata": {
+                "operationMetadataId": "da5a7916-f55a-4359-8046-062f7197f11b"
+              },
+              "type": "Compose",
+              "inputs": "@split(item(), ',')"
+            },
+            "RequestsItemsJson": {
+              "runAfter": {
+                "SplitLinesForJson": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "d96bd3b5-f313-4819-885b-afc0017eb250"
+              },
+              "type": "Compose",
+              "inputs": {
+                "UserFullName": "@outputs('SplitLinesForJson')?[0]",
+                "UserEmail": "@outputs('SplitLinesForJson')?[1]",
+                "UserRole": "@outputs('SplitLinesForJson')?[2]",
+                "ERGGroup": "@outputs('SplitLinesForJson')?[3]"
+              }
+            },
+            "Parse_JSON": {
+              "runAfter": {
+                "RequestsItemsJson": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "fb2e870d-9f5a-4f8a-b441-1edc37719494"
+              },
+              "type": "ParseJson",
+              "inputs": {
+                "content": "@outputs('RequestsItemsJson')",
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "UserFullName": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "UserEmail": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "UserRole": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "ERGGroup": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    }
+                  }
+                }
+              }
+            },
+            "Condition": {
+              "actions": {
+                "Add_a_member_to_a_team": {
+                  "runAfter": {},
+                  "metadata": {
+                    "operationMetadataId": "a21c8af1-b6aa-4d28-bbfc-049e4b3211a0"
+                  },
+                  "type": "OpenApiConnection",
+                  "inputs": {
+                    "host": {
+                      "connectionName": "shared_teams",
+                      "operationId": "AddMemberToTeam",
+                      "apiId": "/providers/Microsoft.PowerApps/apis/shared_teams"
+                    },
+                    "parameters": {
+                      "teamId": "@triggerOutputs()?['body/democop_teamid']",
+                      "body/userId": "@body('Parse_JSON')?['UserEmail']"
+                    },
+                    "authentication": "@parameters('$authentication')"
+                  }
+                },
+                "Get_user_profile_(V2)": {
+                  "runAfter": {
+                    "Add_a_member_to_a_team": [
+                      "Succeeded"
+                    ]
+                  },
+                  "metadata": {
+                    "operationMetadataId": "01b61028-042d-46b9-b311-9bc3a17efd60"
+                  },
+                  "type": "OpenApiConnection",
+                  "inputs": {
+                    "host": {
+                      "connectionName": "shared_office365users",
+                      "operationId": "UserProfile_V2",
+                      "apiId": "/providers/Microsoft.PowerApps/apis/shared_office365users"
+                    },
+                    "parameters": {
+                      "id": "@body('Parse_JSON')?['UserEmail']"
+                    },
+                    "authentication": "@parameters('$authentication')"
+                  }
+                },
+                "Filter_array": {
+                  "runAfter": {
+                    "Get_user_profile_(V2)": [
+                      "Succeeded"
+                    ]
+                  },
+                  "metadata": {
+                    "operationMetadataId": "08f0e4da-c0b3-4b0e-9288-8c67d2528c7c"
+                  },
+                  "type": "Query",
+                  "inputs": {
+                    "from": "@outputs('List_all_tags_for_a_team_2')?['body/value']",
+                    "where": "@equals(item()?['displayName'], body('Parse_JSON')?['UserRole'])"
+                  }
+                },
+                "Condition_3": {
+                  "actions": {
+                    "Apply_to_each_3": {
+                      "foreach": "@body('Filter_array')",
+                      "actions": {
+                        "Add_a_member_to_a_tag": {
+                          "runAfter": {},
+                          "metadata": {
+                            "operationMetadataId": "ff17fbf8-047d-46f1-9b2b-e33d21ee1922"
+                          },
+                          "type": "OpenApiConnection",
+                          "inputs": {
+                            "host": {
+                              "connectionName": "shared_teams",
+                              "operationId": "AddMemberToTag",
+                              "apiId": "/providers/Microsoft.PowerApps/apis/shared_teams"
+                            },
+                            "parameters": {
+                              "groupId": "@triggerOutputs()?['body/democop_teamid']",
+                              "tagId": "@items('Apply_to_each_3')?['id']",
+                              "body/userId": "@outputs('Get_user_profile_(V2)')?['body/id']"
+                            },
+                            "authentication": "@parameters('$authentication')"
+                          }
+                        }
+                      },
+                      "runAfter": {},
+                      "metadata": {
+                        "operationMetadataId": "47e4bba4-3c1f-4725-ba02-eed0a22ae40b"
+                      },
+                      "type": "Foreach"
+                    }
+                  },
+                  "runAfter": {
+                    "Filter_array": [
+                      "Succeeded"
+                    ]
+                  },
+                  "else": {
+                    "actions": {
+                      "Create_a_tag_for_a_team": {
+                        "runAfter": {},
+                        "metadata": {
+                          "operationMetadataId": "9b0be1fc-e0fd-41ff-928a-8ff2b4642c38"
+                        },
+                        "type": "OpenApiConnection",
+                        "inputs": {
+                          "host": {
+                            "connectionName": "shared_teams",
+                            "operationId": "CreateTag",
+                            "apiId": "/providers/Microsoft.PowerApps/apis/shared_teams"
+                          },
+                          "parameters": {
+                            "groupId": "@triggerOutputs()?['body/democop_teamid']",
+                            "body/displayName": "@body('Parse_JSON')?['UserRole']",
+                            "body/members": "@outputs('Get_user_profile_(V2)')?['body/id']"
+                          },
+                          "authentication": "@parameters('$authentication')"
+                        }
+                      }
+                    }
+                  },
+                  "expression": {
+                    "greater": [
+                      "@length(body('Filter_array'))",
+                      0
+                    ]
+                  },
+                  "metadata": {
+                    "operationMetadataId": "f91b9c74-828d-453d-aa71-c8b772316c56"
+                  },
+                  "type": "If"
+                },
+                "List_rows": {
+                  "runAfter": {
+                    "Condition_3": [
+                      "Succeeded"
+                    ]
+                  },
+                  "metadata": {
+                    "operationMetadataId": "d59c5f6a-c0b6-4812-966d-eab0cc167c00"
+                  },
+                  "type": "OpenApiConnection",
+                  "inputs": {
+                    "host": {
+                      "connectionName": "shared_commondataserviceforapps",
+                      "operationId": "ListRecords",
+                      "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
+                    },
+                    "parameters": {
+                      "entityName": "crb97_teocroleassignments_2s",
+                      "$filter": "crb97_title eq '@{body('Parse_JSON')?['UserRole']}'"
+                    },
+                    "authentication": "@parameters('$authentication')"
+                  }
+                },
+                "Apply_to_each_2": {
+                  "foreach": "@outputs('List_rows')?['body/value']",
+                  "actions": {
+                    "Set_variable": {
+                      "runAfter": {},
+                      "metadata": {
+                        "operationMetadataId": "8a7d62af-7b00-4fa4-93c3-244463ef5553"
+                      },
+                      "type": "SetVariable",
+                      "inputs": {
+                        "name": "Reports To",
+                        "value": "@items('Apply_to_each_2')?['crb97_reportsto']"
+                      }
+                    }
+                  },
+                  "runAfter": {
+                    "List_rows": [
+                      "Succeeded"
+                    ]
+                  },
+                  "metadata": {
+                    "operationMetadataId": "5e0fa197-e95e-43ba-a84a-601e3da34cba"
+                  },
+                  "type": "Foreach"
+                },
+                "Add_a_new_row": {
+                  "runAfter": {
+                    "Apply_to_each_2": [
+                      "Succeeded"
+                    ]
+                  },
+                  "metadata": {
+                    "operationMetadataId": "ad15cdde-0c39-4e1d-a09a-ef2b6bac02f1"
+                  },
+                  "type": "OpenApiConnection",
+                  "inputs": {
+                    "host": {
+                      "connectionName": "shared_commondataserviceforapps",
+                      "operationId": "CreateRecord",
+                      "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
+                    },
+                    "parameters": {
+                      "entityName": "crb97_staffingliststds",
+                      "item/crb97_email": "@outputs('Get_user_profile_(V2)')?['body/mail']",
+                      "item/crb97_erggroup": "@body('Parse_JSON')?['ERGGroup']",
+                      "item/crb97_name": "@body('Parse_JSON')?['UserFullName']",
+                      "item/crb97_reportsto": "@variables('Reports To')",
+                      "item/crb97_role": "@body('Parse_JSON')?['UserRole']",
+                      "item/crb97_title": "@triggerOutputs()?['body/democop_name']"
+                    },
+                    "authentication": "@parameters('$authentication')"
+                  }
+                }
+              },
+              "runAfter": {
+                "Parse_JSON": [
+                  "Succeeded"
+                ]
+              },
+              "expression": {
+                "not": {
+                  "equals": [
+                    "@body('Parse_JSON')?['UserEmail']",
+                    "@null"
+                  ]
+                }
+              },
+              "metadata": {
+                "operationMetadataId": "27e97daa-aa40-42aa-98b0-ea0ee9d41a84"
+              },
+              "type": "If"
+            }
+          },
+          "runAfter": {
+            "SplitFileContent": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "25d60fba-c7a6-4458-a053-aa24670cf909"
+          },
+          "type": "Foreach"
+        },
+        "List_all_tags_for_a_team_2": {
+          "runAfter": {
+            "Initialize_variable": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "edb89b72-4434-42b1-abb3-be3a5e488bff"
+          },
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_teams",
+              "operationId": "GetTags",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_teams"
+            },
+            "parameters": {
+              "groupId": "@triggerOutputs()?['body/democop_teamid']"
+            },
+            "authentication": "@parameters('$authentication')"
+          }
+        },
+        "Initialize_variable": {
+          "runAfter": {
+            "Download_a_file_or_an_image": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "7c59cf77-c5b8-4836-b624-0d19999399fa"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "Reports To",
+                "type": "string"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "templateName": ""
+  },
+  "schemaVersion": "1.0.0.0"
+}

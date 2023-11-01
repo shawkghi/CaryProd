@@ -1,0 +1,131 @@
+{
+  "properties": {
+    "connectionReferences": {
+      "shared_teams": {
+        "runtimeSource": "invoker",
+        "connection": {
+          "connectionReferenceLogicalName": "new_sharedteams_8c820"
+        },
+        "api": {
+          "name": "shared_teams"
+        }
+      }
+    },
+    "definition": {
+      "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+      "contentVersion": "1.0.0.0",
+      "parameters": {
+        "$connections": {
+          "defaultValue": {},
+          "type": "Object"
+        },
+        "$authentication": {
+          "defaultValue": {},
+          "type": "SecureObject"
+        }
+      },
+      "triggers": {
+        "manual": {
+          "metadata": {
+            "operationMetadataId": "7a5d5480-82f1-4241-932f-4667d4e9517c"
+          },
+          "type": "Request",
+          "kind": "PowerApp",
+          "inputs": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "Createateam_TeamName": {
+                  "type": "string",
+                  "description": "Name of the team",
+                  "x-ms-powerflows-param-ispartial": false
+                },
+                "Createateam_Description": {
+                  "type": "string",
+                  "description": "Description of the team",
+                  "x-ms-powerflows-param-ispartial": false
+                }
+              },
+              "required": [
+                "Createateam_TeamName",
+                "Createateam_Description"
+              ]
+            }
+          }
+        }
+      },
+      "actions": {
+        "Create_a_team": {
+          "runAfter": {},
+          "metadata": {
+            "operationMetadataId": "3bcf5d1e-1033-4be8-9996-7295478330d2"
+          },
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_teams",
+              "operationId": "CreateATeam",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_teams"
+            },
+            "parameters": {
+              "body/displayName": "@triggerBody()['Createateam_TeamName']",
+              "body/description": "@triggerBody()['Createateam_Description']",
+              "body/visibility": "Public"
+            },
+            "authentication": {
+              "type": "Raw",
+              "value": "@json(decodeBase64(triggerOutputs().headers['X-MS-APIM-Tokens']))['$ConnectionKey']"
+            }
+          }
+        },
+        "Respond_to_a_PowerApp_or_flow": {
+          "runAfter": {
+            "Delay": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "f77e5403-4ea1-408c-81cf-a18a5badf30e"
+          },
+          "type": "Response",
+          "kind": "PowerApp",
+          "inputs": {
+            "statusCode": 200,
+            "body": {
+              "teamid": "@outputs('Create_a_team')?['body/newTeamId']"
+            },
+            "schema": {
+              "type": "object",
+              "properties": {
+                "teamid": {
+                  "title": "TeamID",
+                  "x-ms-dynamically-added": true,
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "Delay": {
+          "runAfter": {
+            "Create_a_team": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "167b2b74-b921-4f20-9a94-8346fb739771"
+          },
+          "type": "Wait",
+          "inputs": {
+            "interval": {
+              "count": 10,
+              "unit": "Second"
+            }
+          }
+        }
+      }
+    },
+    "templateName": ""
+  },
+  "schemaVersion": "1.0.0.0"
+}

@@ -1,0 +1,334 @@
+{
+  "properties": {
+    "connectionReferences": {
+      "shared_teams_1": {
+        "runtimeSource": "invoker",
+        "connection": {
+          "connectionReferenceLogicalName": "new_sharedteams_78e78"
+        },
+        "api": {
+          "name": "shared_teams"
+        }
+      },
+      "shared_office365_1": {
+        "runtimeSource": "invoker",
+        "connection": {
+          "connectionReferenceLogicalName": "new_sharedoffice365_23120"
+        },
+        "api": {
+          "name": "shared_office365"
+        }
+      },
+      "shared_office365users": {
+        "runtimeSource": "invoker",
+        "connection": {
+          "connectionReferenceLogicalName": "new_sharedoffice365users_8f9bf"
+        },
+        "api": {
+          "name": "shared_office365users"
+        }
+      }
+    },
+    "definition": {
+      "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+      "contentVersion": "1.0.0.0",
+      "parameters": {
+        "$connections": {
+          "defaultValue": {},
+          "type": "Object"
+        },
+        "$authentication": {
+          "defaultValue": {},
+          "type": "SecureObject"
+        },
+        "VTEOC-FailureNotificationEmail (new_FailureNotificationEmail)": {
+          "defaultValue": "shawk@devgh.onmicrosoft.com",
+          "type": "String",
+          "metadata": {
+            "schemaName": "new_FailureNotificationEmail"
+          }
+        }
+      },
+      "triggers": {
+        "manual": {
+          "metadata": {
+            "operationMetadataId": "4dc3a248-671d-4859-b478-7fd1032acfa1"
+          },
+          "type": "Request",
+          "kind": "PowerApp",
+          "inputs": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "Condition_Value": {
+                  "type": "any",
+                  "description": "Choose a value",
+                  "x-ms-powerflows-param-ispartial": false
+                },
+                "Listalltagsforateam_Team": {
+                  "type": "string",
+                  "description": "Add team ID",
+                  "x-ms-powerflows-param-ispartial": false
+                },
+                "Condition2_Value": {
+                  "type": "any",
+                  "description": "Choose a value",
+                  "x-ms-powerflows-param-ispartial": false
+                }
+              },
+              "required": [
+                "Condition_Value",
+                "Listalltagsforateam_Team",
+                "Condition2_Value"
+              ]
+            }
+          }
+        }
+      },
+      "actions": {
+        "List_all_tags_for_a_team": {
+          "runAfter": {},
+          "metadata": {
+            "operationMetadataId": "c2465ced-28eb-4dd3-8937-dfa681f6ab50"
+          },
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_teams_1",
+              "operationId": "GetTags",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_teams"
+            },
+            "parameters": {
+              "groupId": "@triggerBody()['Listalltagsforateam_Team']"
+            },
+            "authentication": {
+              "type": "Raw",
+              "value": "@json(decodeBase64(triggerOutputs().headers['X-MS-APIM-Tokens']))['$ConnectionKey']"
+            }
+          }
+        },
+        "Apply_to_each": {
+          "foreach": "@outputs('List_all_tags_for_a_team')?['body/value']",
+          "actions": {
+            "Condition": {
+              "actions": {
+                "List_the_members_for_a_tag": {
+                  "runAfter": {},
+                  "metadata": {
+                    "operationMetadataId": "275d9223-1022-442a-9396-0daf44e2f301"
+                  },
+                  "type": "OpenApiConnection",
+                  "inputs": {
+                    "host": {
+                      "connectionName": "shared_teams_1",
+                      "operationId": "GetTagMembers",
+                      "apiId": "/providers/Microsoft.PowerApps/apis/shared_teams"
+                    },
+                    "parameters": {
+                      "groupId": "@items('Apply_to_each')?['teamId']",
+                      "tagId": "@items('Apply_to_each')?['id']"
+                    },
+                    "authentication": {
+                      "type": "Raw",
+                      "value": "@json(decodeBase64(triggerOutputs().headers['X-MS-APIM-Tokens']))['$ConnectionKey']"
+                    }
+                  }
+                },
+                "Apply_to_each_2": {
+                  "foreach": "@outputs('List_the_members_for_a_tag')?['body/value']",
+                  "actions": {
+                    "Condition_2": {
+                      "actions": {
+                        "Delete_a_member_from_a_tag": {
+                          "runAfter": {},
+                          "metadata": {
+                            "operationMetadataId": "91cff600-e478-4365-9475-13c4f24de373"
+                          },
+                          "type": "OpenApiConnection",
+                          "inputs": {
+                            "host": {
+                              "connectionName": "shared_teams_1",
+                              "operationId": "DeleteTagMember",
+                              "apiId": "/providers/Microsoft.PowerApps/apis/shared_teams"
+                            },
+                            "parameters": {
+                              "groupId": "@items('Apply_to_each')?['teamId']",
+                              "tagId": "@items('Apply_to_each')?['id']",
+                              "tagMemberId": "@items('Apply_to_each_2')?['id']"
+                            },
+                            "authentication": {
+                              "type": "Raw",
+                              "value": "@json(decodeBase64(triggerOutputs().headers['X-MS-APIM-Tokens']))['$ConnectionKey']"
+                            }
+                          }
+                        },
+                        "Add_a_member_to_a_tag": {
+                          "runAfter": {
+                            "Delete_a_member_from_a_tag": [
+                              "Succeeded"
+                            ]
+                          },
+                          "metadata": {
+                            "operationMetadataId": "81af3362-d12b-4da7-9810-709323cc5456"
+                          },
+                          "type": "OpenApiConnection",
+                          "inputs": {
+                            "host": {
+                              "connectionName": "shared_teams_1",
+                              "operationId": "AddMemberToTag",
+                              "apiId": "/providers/Microsoft.PowerApps/apis/shared_teams"
+                            },
+                            "parameters": {
+                              "groupId": "@items('Apply_to_each')?['teamId']",
+                              "tagId": "@triggerBody()['Condition2_Value']",
+                              "body/userId": "@items('Apply_to_each_2')?['userId']"
+                            },
+                            "authentication": {
+                              "type": "Raw",
+                              "value": "@json(decodeBase64(triggerOutputs().headers['X-MS-APIM-Tokens']))['$ConnectionKey']"
+                            }
+                          }
+                        }
+                      },
+                      "runAfter": {},
+                      "expression": {
+                        "equals": [
+                          "@items('Apply_to_each_2')?['userId']",
+                          "@triggerBody()['Condition_Value']"
+                        ]
+                      },
+                      "metadata": {
+                        "operationMetadataId": "4eb6aeb4-bc0a-4f5b-8521-dc5f915f389d"
+                      },
+                      "type": "If"
+                    }
+                  },
+                  "runAfter": {
+                    "List_the_members_for_a_tag": [
+                      "Succeeded"
+                    ]
+                  },
+                  "metadata": {
+                    "operationMetadataId": "941c6d07-8411-4b42-8522-4c0435878404"
+                  },
+                  "type": "Foreach"
+                }
+              },
+              "runAfter": {},
+              "expression": {
+                "equals": [
+                  "@items('Apply_to_each')?['teamId']",
+                  "@triggerBody()['Listalltagsforateam_Team']"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "8e099ed0-4c62-4f7b-a55c-2a06aebfce49"
+              },
+              "type": "If"
+            }
+          },
+          "runAfter": {
+            "Get_user_profile_(V2)": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "436dea90-3db9-499f-87ab-769c7d149b44"
+          },
+          "type": "Foreach"
+        },
+        "Scope_Failure_Notifications": {
+          "actions": {
+            "Compose_Flow_run_link": {
+              "runAfter": {},
+              "metadata": {
+                "operationMetadataId": "304e2c8e-c6d8-4bd0-ac4d-57951dd57763"
+              },
+              "type": "Compose",
+              "inputs": "@concat('https://us.flow.microsoft.com/manage/environments/', workflow()?['tags']?['environmentName'], '/flows/', workflow()?['name'], '/runs/', workflow()?['run']['name'])"
+            },
+            "Send_an_email_(V2)_Failure_notification": {
+              "runAfter": {
+                "Compose_Flow_run_link": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "bd4b39c2-3462-4a00-b21d-d8ac056f00d2"
+              },
+              "type": "OpenApiConnection",
+              "inputs": {
+                "host": {
+                  "connectionName": "shared_office365_1",
+                  "operationId": "SendEmailV2",
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_office365"
+                },
+                "parameters": {
+                  "emailMessage/To": "@parameters('VTEOC-FailureNotificationEmail (new_FailureNotificationEmail)')",
+                  "emailMessage/Subject": "Your @{workflow()?['tags']?['flowDisplayName']} flow failed",
+                  "emailMessage/Body": "<p>Check your flow.<br>\n<br>\n<a href=\"@{outputs('Compose_Flow_run_link')}\">Flow Run Link</a>&nbsp;</p>"
+                },
+                "authentication": {
+                  "type": "Raw",
+                  "value": "@json(decodeBase64(triggerOutputs().headers['X-MS-APIM-Tokens']))['$ConnectionKey']"
+                }
+              }
+            },
+            "Terminate_Mark_flow_run_failure": {
+              "runAfter": {
+                "Send_an_email_(V2)_Failure_notification": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "c3050a38-c258-4145-b3fa-4d5e80d70b67"
+              },
+              "type": "Terminate",
+              "inputs": {
+                "runStatus": "Failed"
+              }
+            }
+          },
+          "runAfter": {
+            "Apply_to_each": [
+              "Failed",
+              "Skipped"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "072e1b99-2b98-4cdc-bb50-f9ef10d9a137"
+          },
+          "type": "Scope",
+          "description": "Set this Scope's Configure run after settings to \"has failed\", \"is skipped\", and \"has timed out\"."
+        },
+        "Get_user_profile_(V2)": {
+          "runAfter": {
+            "List_all_tags_for_a_team": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "935b1cd4-5fec-4323-996f-b4eeeb01e08f"
+          },
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_office365users",
+              "operationId": "UserProfile_V2",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_office365users"
+            },
+            "parameters": {
+              "id": "@triggerBody()['Condition_Value']"
+            },
+            "authentication": {
+              "type": "Raw",
+              "value": "@json(decodeBase64(triggerOutputs().headers['X-MS-APIM-Tokens']))['$ConnectionKey']"
+            }
+          }
+        }
+      }
+    },
+    "templateName": ""
+  },
+  "schemaVersion": "1.0.0.0"
+}

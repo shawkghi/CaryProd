@@ -1,0 +1,559 @@
+{
+  "properties": {
+    "connectionReferences": {
+      "shared_office365_1": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "new_sharedoffice365_23120"
+        },
+        "api": {
+          "name": "shared_office365"
+        }
+      },
+      "shared_teams_1": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "new_sharedteams_8c820"
+        },
+        "api": {
+          "name": "shared_teams"
+        }
+      },
+      "shared_commondataserviceforapps": {
+        "impersonation": {},
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "democop_sharedcommondataserviceforapps_70956"
+        },
+        "api": {
+          "name": "shared_commondataserviceforapps"
+        }
+      }
+    },
+    "definition": {
+      "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+      "contentVersion": "1.0.0.0",
+      "parameters": {
+        "$connections": {
+          "defaultValue": {},
+          "type": "Object"
+        },
+        "$authentication": {
+          "defaultValue": {},
+          "type": "SecureObject"
+        },
+        "VTEOC-FailureNotificationEmail (new_FailureNotificationEmail)": {
+          "defaultValue": "shawk@devgh.onmicrosoft.com",
+          "type": "String",
+          "metadata": {
+            "schemaName": "new_FailureNotificationEmail"
+          }
+        },
+        "VTEOC-SecretID-NoEncryption (democop_DEMOSecretIDNoEncryption)": {
+          "defaultValue": "Y8U8Q~4cdr9mAKSV6ciavuYI1Llm1-yMvlDlWcO~",
+          "type": "String",
+          "metadata": {
+            "schemaName": "democop_DEMOSecretIDNoEncryption"
+          }
+        },
+        "VTEOC-TenantID (democop_DEMOTenantID)": {
+          "defaultValue": "06901596-5550-425c-abe0-3240ed6ec7ae",
+          "type": "String",
+          "metadata": {
+            "schemaName": "democop_DEMOTenantID"
+          }
+        },
+        "VTEOC-ClientID (new_ClientID)": {
+          "defaultValue": "e828c76f-d638-4023-a6f9-2923b706539c",
+          "type": "String",
+          "metadata": {
+            "schemaName": "new_ClientID",
+            "description": "e828c76f-d638-4023-a6f9-2923b706539c"
+          }
+        }
+      },
+      "triggers": {
+        "manual": {
+          "metadata": {
+            "operationMetadataId": "9f921109-b71c-4f82-9d1b-453d647ac31b"
+          },
+          "type": "Request",
+          "kind": "Button",
+          "inputs": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "text": {
+                  "title": "TeamName",
+                  "type": "string",
+                  "x-ms-dynamically-added": true,
+                  "description": "Please enter your input",
+                  "x-ms-content-hint": "TEXT"
+                },
+                "text_1": {
+                  "title": "transactionlistID",
+                  "type": "string",
+                  "x-ms-dynamically-added": true,
+                  "description": "Please enter your input",
+                  "x-ms-content-hint": "TEXT"
+                }
+              },
+              "required": [
+                "text",
+                "text_1"
+              ]
+            }
+          }
+        }
+      },
+      "actions": {
+        "Initialize_variable_channelName": {
+          "runAfter": {
+            "Compose_split_team_url_1": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "b2df16f0-2422-4f32-8567-b2426a161cbe"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "channelName",
+                "type": "string"
+              }
+            ]
+          }
+        },
+        "Scope_Failure_Notifications": {
+          "actions": {
+            "Compose_Flow_run_link": {
+              "runAfter": {},
+              "metadata": {
+                "operationMetadataId": "304e2c8e-c6d8-4bd0-ac4d-57951dd57763"
+              },
+              "type": "Compose",
+              "inputs": "@concat('https://us.flow.microsoft.com/manage/environments/', workflow()?['tags']?['environmentName'], '/flows/', workflow()?['name'], '/runs/', workflow()?['run']['name'])"
+            },
+            "Send_an_email_(V2)_Failure_notification": {
+              "runAfter": {
+                "Compose_Flow_run_link": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "bd4b39c2-3462-4a00-b21d-d8ac056f00d2"
+              },
+              "type": "OpenApiConnection",
+              "inputs": {
+                "host": {
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_office365",
+                  "connectionName": "shared_office365_1",
+                  "operationId": "SendEmailV2"
+                },
+                "parameters": {
+                  "emailMessage/To": "@parameters('VTEOC-FailureNotificationEmail (new_FailureNotificationEmail)')",
+                  "emailMessage/Subject": "Your @{workflow()?['tags']?['flowDisplayName']} flow failed",
+                  "emailMessage/Body": "<p>Check your flow.<br>\n<br>\n<a href=\"@{outputs('Compose_Flow_run_link')}\">Flow Run Link</a>&nbsp;</p>"
+                },
+                "authentication": "@parameters('$authentication')"
+              }
+            },
+            "Terminate_Mark_flow_run_failure": {
+              "runAfter": {
+                "Send_an_email_(V2)_Failure_notification": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "c3050a38-c258-4145-b3fa-4d5e80d70b67"
+              },
+              "type": "Terminate",
+              "inputs": {
+                "runStatus": "Failed"
+              }
+            }
+          },
+          "runAfter": {
+            "Respond_to_a_PowerApp_or_flow": [
+              "Failed",
+              "Skipped"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "072e1b99-2b98-4cdc-bb50-f9ef10d9a137"
+          },
+          "type": "Scope",
+          "description": "Set this Scope's Configure run after settings to \"has failed\", \"is skipped\", and \"has timed out\"."
+        },
+        "Initialize_varTeamName": {
+          "runAfter": {
+            "List_rows": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "6811a6e0-8ede-4f0f-9a41-7f209328ce88"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "varTeamName",
+                "type": "string"
+              }
+            ]
+          }
+        },
+        "Set_variable_varTeamName2": {
+          "runAfter": {
+            "Initialize_varTeamName": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "d07aa34d-656b-420c-a664-ad066ad01e2a"
+          },
+          "type": "SetVariable",
+          "inputs": {
+            "name": "varTeamName",
+            "value": "@triggerBody()['text']"
+          }
+        },
+        "Initialize_variable_groupID": {
+          "runAfter": {
+            "Set_variable_varTeamName2": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "291dac9c-6847-4c64-a5de-1a8f6ada4a41"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "groupID",
+                "type": "string"
+              }
+            ]
+          }
+        },
+        "Compose_split_team_url_1": {
+          "runAfter": {
+            "Get_a_row_by_ID": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "eb77d7f4-d32d-4479-adae-443783b011a5"
+          },
+          "type": "Compose",
+          "inputs": "@last(split(uriComponentToString(outputs('Get_a_row_by_ID')?['body/crb97_teamweburl']), 'groupId='))"
+        },
+        "Compose_split_team_url_get_group_id": {
+          "runAfter": {
+            "Initialize_variable_channelName": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "7cec1079-86d0-4d8b-8fc7-19afaf9a54e0"
+          },
+          "type": "Compose",
+          "inputs": "@first(split(outputs('Compose_split_team_url_1'), '&tenantId'))"
+        },
+        "Set_variable_groupID": {
+          "runAfter": {
+            "Compose_split_team_url_get_group_id": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "74f7d4a6-6cce-4fed-8493-ab7491ac295e"
+          },
+          "type": "SetVariable",
+          "inputs": {
+            "name": "groupID",
+            "value": "@{outputs('Compose_split_team_url_get_group_id')}"
+          }
+        },
+        "Respond_to_a_PowerApp_or_flow": {
+          "runAfter": {
+            "Apply_to_each_3": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "9e38f788-ac61-42bc-bf69-d635cb8e5d53"
+          },
+          "type": "Response",
+          "kind": "PowerApp",
+          "inputs": {
+            "statusCode": 200,
+            "body": {
+              "status": "Completed"
+            },
+            "schema": {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "title": "status",
+                  "x-ms-dynamically-added": true,
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "Initialize_variable_-_Secret_ID_Value": {
+          "runAfter": {
+            "Initialize_variable_groupID": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "e711fa53-4c0b-464b-8a36-5c516125afa5"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "SecretIDValue",
+                "type": "string",
+                "value": "@parameters('VTEOC-SecretID-NoEncryption (democop_DEMOSecretIDNoEncryption)')"
+              }
+            ]
+          }
+        },
+        "Initialize_variable_-_Client_ID": {
+          "runAfter": {
+            "Initialize_variable_-_Secret_ID_Value": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "efd8168b-e7fd-4e4a-b4f7-c22f63c1d9d4"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "ClientID",
+                "type": "string",
+                "value": "@parameters('VTEOC-ClientID (new_ClientID)')"
+              }
+            ]
+          }
+        },
+        "Initialize_variable_TenantID": {
+          "runAfter": {
+            "Initialize_variable_-_Client_ID": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "45707d6a-c1ae-435d-9897-a6866b4e473a"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "Tenant ID",
+                "type": "string",
+                "value": "@parameters('VTEOC-TenantID (democop_DEMOTenantID)')"
+              }
+            ]
+          }
+        },
+        "List_channels": {
+          "runAfter": {
+            "Set_variable_groupID": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "5efd9cb5-caf2-4bed-a91f-45490a626b13"
+          },
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_teams",
+              "connectionName": "shared_teams_1",
+              "operationId": "GetChannelsForGroup"
+            },
+            "parameters": {
+              "groupId": "@variables('groupID')"
+            },
+            "authentication": {
+              "value": "@json(decodeBase64(triggerOutputs().headers['X-MS-APIM-Tokens']))['$ConnectionKey']",
+              "type": "Raw"
+            }
+          }
+        },
+        "Apply_to_each_2": {
+          "foreach": "@outputs('List_channels')?['body/value']",
+          "actions": {
+            "Condition": {
+              "actions": {
+                "HTTP": {
+                  "runAfter": {},
+                  "metadata": {
+                    "operationMetadataId": "c618a95f-4997-4cee-b939-ee8a2353ea69"
+                  },
+                  "type": "Http",
+                  "inputs": {
+                    "method": "DELETE",
+                    "uri": "https://graph.microsoft.com/v1.0/teams/@{variables('groupID')}/channels/@{items('Apply_to_each_2')?['id']}",
+                    "authentication": {
+                      "type": "ActiveDirectoryOAuth",
+                      "tenant": "@variables('Tenant ID')",
+                      "audience": "https://graph.microsoft.com",
+                      "clientId": "@variables('ClientID')",
+                      "secret": "@variables('SecretIDValue')"
+                    }
+                  }
+                }
+              },
+              "runAfter": {},
+              "expression": {
+                "or": [
+                  {
+                    "equals": [
+                      "@items('Apply_to_each_2')?['displayName']",
+                      "Planning"
+                    ]
+                  },
+                  {
+                    "equals": [
+                      "@items('Apply_to_each_2')?['displayName']",
+                      "Announcements"
+                    ]
+                  },
+                  {
+                    "equals": [
+                      "@items('Apply_to_each_2')?['displayName']",
+                      "Assessment"
+                    ]
+                  },
+                  {
+                    "equals": [
+                      "@items('Apply_to_each_2')?['displayName']",
+                      "Logistics"
+                    ]
+                  },
+                  {
+                    "equals": [
+                      "@items('Apply_to_each_2')?['displayName']",
+                      "Planning"
+                    ]
+                  },
+                  {
+                    "equals": [
+                      "@items('Apply_to_each_2')?['displayName']",
+                      "Recovery"
+                    ]
+                  }
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "96126da8-4d0b-45a8-a790-a13f34e2b79a"
+              },
+              "type": "If"
+            }
+          },
+          "runAfter": {
+            "List_channels": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "2c7b1e92-da7a-4d2c-888c-3e1bec850caa"
+          },
+          "type": "Foreach"
+        },
+        "List_rows": {
+          "runAfter": {},
+          "metadata": {
+            "operationMetadataId": "e10892f7-ed0a-40ba-a46f-f9044320a71a"
+          },
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps",
+              "connectionName": "shared_commondataserviceforapps",
+              "operationId": "ListRecords"
+            },
+            "parameters": {
+              "entityName": "crb97_erggroups_2s"
+            },
+            "authentication": "@parameters('$authentication')"
+          }
+        },
+        "Get_a_row_by_ID": {
+          "runAfter": {
+            "Initialize_variable_TenantID": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "cb11f265-66a6-4cdb-a015-7f30777785da"
+          },
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps",
+              "connectionName": "shared_commondataserviceforapps",
+              "operationId": "GetItem"
+            },
+            "parameters": {
+              "entityName": "crb97_teocincidenttransaction_3s",
+              "recordId": "@triggerBody()['text_1']"
+            },
+            "authentication": "@parameters('$authentication')"
+          }
+        },
+        "Apply_to_each_3": {
+          "foreach": "@outputs('List_rows')?['body/value']",
+          "actions": {
+            "Create_a_channel": {
+              "runAfter": {},
+              "metadata": {
+                "operationMetadataId": "a825d6ad-95fd-445c-81c2-c79c60d99e81"
+              },
+              "type": "OpenApiConnection",
+              "inputs": {
+                "host": {
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_teams",
+                  "connectionName": "shared_teams_1",
+                  "operationId": "CreateChannel"
+                },
+                "parameters": {
+                  "groupId": "@variables('groupID')",
+                  "body/displayName": "@items('Apply_to_each_3')?['crb97_title']",
+                  "body/description": "@items('Apply_to_each_3')?['crb97_ergname']"
+                },
+                "authentication": {
+                  "value": "@json(decodeBase64(triggerOutputs().headers['X-MS-APIM-Tokens']))['$ConnectionKey']",
+                  "type": "Raw"
+                }
+              }
+            }
+          },
+          "runAfter": {
+            "Apply_to_each_2": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "401c411a-41b6-40ec-b505-9d345d043a83"
+          },
+          "type": "Foreach"
+        }
+      }
+    },
+    "templateName": null
+  },
+  "schemaVersion": "1.0.0.0"
+}

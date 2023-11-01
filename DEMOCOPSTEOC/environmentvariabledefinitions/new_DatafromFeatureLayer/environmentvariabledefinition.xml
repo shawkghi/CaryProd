@@ -1,0 +1,11 @@
+<environmentvariabledefinition schemaname="new_DatafromFeatureLayer">
+  <defaultvalue>455497b160de42a3a60e9d4e7691d125layerId0</defaultvalue>
+  <displayname default="VTEOC-DatafromFeatureLayer">
+    <label description="VTEOC-DatafromFeatureLayer" languagecode="1033" />
+  </displayname>
+  <introducedversion>1.1.0.14</introducedversion>
+  <iscustomizable>1</iscustomizable>
+  <isrequired>0</isrequired>
+  <secretstore>0</secretstore>
+  <type>100000000</type>
+</environmentvariabledefinition>

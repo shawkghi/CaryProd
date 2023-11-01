@@ -1,0 +1,178 @@
+{
+  "properties": {
+    "connectionReferences": {},
+    "definition": {
+      "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+      "contentVersion": "1.0.0.0",
+      "parameters": {
+        "$authentication": {
+          "defaultValue": {},
+          "type": "SecureObject"
+        },
+        "AGOLAppId_ClientSecret (new_AGOLAppId_ClientSecret)": {
+          "defaultValue": "cc577689093b4bb2a839145ad9f2b3f1",
+          "type": "String",
+          "metadata": {
+            "schemaName": "new_AGOLAppId_ClientSecret"
+          }
+        },
+        "AGOLAppId_ClientId (new_AGOLAppId_ClientId)": {
+          "defaultValue": "ceetVDjSDjdo6hKz",
+          "type": "String",
+          "metadata": {
+            "schemaName": "new_AGOLAppId_ClientId"
+          }
+        }
+      },
+      "triggers": {
+        "manual": {
+          "metadata": {
+            "operationMetadataId": "36dc95ef-e31c-4400-9ea3-1fb2fc580cf0"
+          },
+          "type": "Request",
+          "kind": "Button",
+          "inputs": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "text": {
+                  "title": "InputAddress",
+                  "type": "string",
+                  "x-ms-dynamically-added": true,
+                  "description": "380 New York St, Redlands, California, 92373",
+                  "x-ms-content-hint": "TEXT"
+                }
+              },
+              "required": [
+                "text"
+              ]
+            }
+          }
+        }
+      },
+      "actions": {
+        "Initialize_variable": {
+          "runAfter": {},
+          "metadata": {
+            "operationMetadataId": "e2a26f2e-cab0-440a-87ea-13ed64e3f029"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "ClientID",
+                "type": "string",
+                "value": "@parameters('AGOLAppId_ClientId (new_AGOLAppId_ClientId)')"
+              }
+            ]
+          }
+        },
+        "Initialize_variable_2": {
+          "runAfter": {
+            "Initialize_variable": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "b4958c94-01ed-4063-9fde-6e7023452d92"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "ClientSecret",
+                "type": "string",
+                "value": "@parameters('AGOLAppId_ClientSecret (new_AGOLAppId_ClientSecret)')"
+              }
+            ]
+          }
+        },
+        "HTTP": {
+          "runAfter": {
+            "Initialize_variable_2": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "5318061f-5872-4465-8ddf-ddeeaec64167"
+          },
+          "type": "Http",
+          "inputs": {
+            "method": "POST",
+            "uri": "@{concat('https://www.arcgis.com/sharing/rest/oauth2/token?client_id=', variables('ClientID'), '&client_secret=', variables('ClientSecret'), '&grant_type=client_credentials')}"
+          }
+        },
+        "Parse_JSON": {
+          "runAfter": {
+            "HTTP": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "7bc2c6b6-0f1a-4ccd-9f74-1e04e6e087c6"
+          },
+          "type": "ParseJson",
+          "inputs": {
+            "content": "@body('HTTP')",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "access_token": {
+                  "type": "string"
+                },
+                "expires_in": {
+                  "type": "integer"
+                }
+              }
+            }
+          }
+        },
+        "HTTP_2": {
+          "runAfter": {
+            "Parse_JSON": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "e1dda924-7ab7-4066-805d-9c09dc5482ca"
+          },
+          "type": "Http",
+          "inputs": {
+            "method": "GET",
+            "uri": "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates?SingleLine=@{triggerBody()['text']}&outFields=*&forStorage=true&f=pjson&token=@{body('Parse_JSON')?['access_token']}"
+          }
+        },
+        "Respond_to_a_PowerApp_or_flow": {
+          "runAfter": {
+            "HTTP_2": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "b31c1eca-37e2-4573-8088-b3b5081883ef"
+          },
+          "type": "Response",
+          "kind": "PowerApp",
+          "inputs": {
+            "statusCode": 200,
+            "body": {
+              "status": "completed"
+            },
+            "schema": {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "title": "status",
+                  "x-ms-dynamically-added": true,
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "templateName": ""
+  },
+  "schemaVersion": "1.0.0.0"
+}

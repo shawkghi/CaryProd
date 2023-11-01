@@ -1,0 +1,146 @@
+{
+  "properties": {
+    "connectionReferences": {
+      "shared_sharepointonline_1": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "new_sharedsharepointonline_1a1dc"
+        },
+        "api": {
+          "name": "shared_sharepointonline"
+        }
+      }
+    },
+    "definition": {
+      "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+      "contentVersion": "1.0.0.0",
+      "parameters": {
+        "$connections": {
+          "defaultValue": {},
+          "type": "Object"
+        },
+        "$authentication": {
+          "defaultValue": {},
+          "type": "SecureObject"
+        }
+      },
+      "triggers": {
+        "manual": {
+          "metadata": {
+            "operationMetadataId": "624192d4-dc36-4a93-b2dd-7b5891bbac56"
+          },
+          "type": "Request",
+          "kind": "Button",
+          "inputs": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "text": {
+                  "title": "SharepointSiteURL",
+                  "type": "string",
+                  "x-ms-dynamically-added": true,
+                  "description": "Please enter your input",
+                  "x-ms-content-hint": "TEXT"
+                }
+              },
+              "required": [
+                "text"
+              ]
+            }
+          }
+        }
+      },
+      "actions": {
+        "Copy_Sharepoint_Template_file_to_new_incident_team": {
+          "runAfter": {},
+          "metadata": {
+            "%252fSitePages%252fTemplates%252fLatest-Update-Template1.aspx": "/SitePages/Templates/Latest-Update-Template1.aspx",
+            "operationMetadataId": "481f4f3a-e354-49f7-898a-411718bbada2",
+            "%252fSitePages%252fTemplates%252fHome.aspx": "/SitePages/Templates/Home.aspx"
+          },
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_sharepointonline_1",
+              "operationId": "CopyFileAsync",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline"
+            },
+            "parameters": {
+              "dataset": "https://devgh.sharepoint.com/sites/2023-03-24Bird-Flu",
+              "parameters/sourceFileId": "%252fSitePages%252fTemplates%252fHome.aspx",
+              "parameters/destinationDataset": "@triggerBody()['text']",
+              "parameters/destinationFolderPath": "/SitePages",
+              "parameters/nameConflictBehavior": 1
+            },
+            "authentication": {
+              "type": "Raw",
+              "value": "@json(decodeBase64(triggerOutputs().headers['X-MS-APIM-Tokens']))['$ConnectionKey']"
+            }
+          }
+        },
+        "Respond_to_a_PowerApp_or_flow": {
+          "runAfter": {
+            "Copy_Sharepoint_Template_file_to_new_incident_team_2": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "39b30d71-f111-4053-b86b-c802713958b0"
+          },
+          "type": "Response",
+          "kind": "PowerApp",
+          "inputs": {
+            "statusCode": 200,
+            "body": {
+              "status": "complete"
+            },
+            "schema": {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "title": "status",
+                  "x-ms-dynamically-added": true,
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "Copy_Sharepoint_Template_file_to_new_incident_team_2": {
+          "runAfter": {
+            "Copy_Sharepoint_Template_file_to_new_incident_team": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "%252fSitePages%252fTemplates%252fLatest-Update-Template1.aspx": "/SitePages/Templates/Latest-Update-Template1.aspx",
+            "operationMetadataId": "481f4f3a-e354-49f7-898a-411718bbada2",
+            "%252fSitePages%252fTemplates%252fHome.aspx": "/SitePages/Templates/Home.aspx",
+            "%252fSitePages%252fGroup-Calendar.aspx": "/SitePages/Group-Calendar.aspx"
+          },
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_sharepointonline_1",
+              "operationId": "CopyFileAsync",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline"
+            },
+            "parameters": {
+              "dataset": "https://devgh.sharepoint.com/sites/2023-03-24Bird-Flu",
+              "parameters/sourceFileId": "%252fSitePages%252fGroup-Calendar.aspx",
+              "parameters/destinationDataset": "@triggerBody()['text']",
+              "parameters/destinationFolderPath": "/SitePages",
+              "parameters/nameConflictBehavior": 1
+            },
+            "authentication": {
+              "type": "Raw",
+              "value": "@json(decodeBase64(triggerOutputs().headers['X-MS-APIM-Tokens']))['$ConnectionKey']"
+            }
+          }
+        }
+      }
+    },
+    "templateName": ""
+  },
+  "schemaVersion": "1.0.0.0"
+}

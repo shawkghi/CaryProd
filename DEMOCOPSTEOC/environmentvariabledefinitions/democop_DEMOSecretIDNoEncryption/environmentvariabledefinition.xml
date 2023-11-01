@@ -1,0 +1,11 @@
+<environmentvariabledefinition schemaname="democop_DEMOSecretIDNoEncryption">
+  <defaultvalue>Y8U8Q~4cdr9mAKSV6ciavuYI1Llm1-yMvlDlWcO~</defaultvalue>
+  <displayname default="VTEOC-SecretID-NoEncryption">
+    <label description="VTEOC-SecretID-NoEncryption" languagecode="1033" />
+  </displayname>
+  <introducedversion>1.2.0.11</introducedversion>
+  <iscustomizable>1</iscustomizable>
+  <isrequired>0</isrequired>
+  <secretstore>0</secretstore>
+  <type>100000000</type>
+</environmentvariabledefinition>

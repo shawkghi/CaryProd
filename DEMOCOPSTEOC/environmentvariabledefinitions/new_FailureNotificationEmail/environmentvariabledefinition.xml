@@ -1,0 +1,11 @@
+<environmentvariabledefinition schemaname="new_FailureNotificationEmail">
+  <defaultvalue>shawk@devgh.onmicrosoft.com</defaultvalue>
+  <displayname default="VTEOC-FailureNotificationEmail">
+    <label description="VTEOC-FailureNotificationEmail" languagecode="1033" />
+  </displayname>
+  <introducedversion>1.1.0.14</introducedversion>
+  <iscustomizable>1</iscustomizable>
+  <isrequired>0</isrequired>
+  <secretstore>0</secretstore>
+  <type>100000000</type>
+</environmentvariabledefinition>

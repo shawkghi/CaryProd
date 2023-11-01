@@ -1,0 +1,28 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<CanvasApp xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <Name>cr85b_demopiodocumentapproval_8ebd4</Name>
+  <AppVersion>2023-10-19T13:15:54Z</AppVersion>
+  <Status>Ready</Status>
+  <CreatedByClientVersion>3.23055.19.0</CreatedByClientVersion>
+  <MinClientVersion>3.23055.19.0</MinClientVersion>
+  <Tags>{"primaryDeviceWidth":"1366","primaryDeviceHeight":"768","supportsPortrait":"true","supportsLandscape":"true","primaryFormFactor":"Tablet","publisherVersion":"3.23055.19","minimumRequiredApiVersion":"2.2.0","hasComponent":"false","hasUnlockedComponent":"false","isUnifiedRootApp":"false","sienaVersion":"20230616T191337Z-3.23055.18.0"}</Tags>
+  <IsCdsUpgraded>0</IsCdsUpgraded>
+  <GalleryItemId xsi:nil="true"></GalleryItemId>
+  <BackgroundColor>RGBA(0,176,240,1)</BackgroundColor>
+  <DisplayName>Demo - PIO Document Approval</DisplayName>
+  <Description></Description>
+  <CommitMessage></CommitMessage>
+  <Publisher></Publisher>
+  <AuthorizationReferences>[]</AuthorizationReferences>
+  <ConnectionReferences>{"80fffb38-d9fd-4c74-a96c-18382a745ae8":{"id":"/providers/microsoft.powerapps/apis/shared_sharepointonline","displayName":"SharePoint","iconUri":"https://connectoricons-prod.azureedge.net/releases/v1.0.1656/1.0.1656.3432/sharepointonline/icon.png","dataSources":["PIO Document Requests_1","PIO Document Requests"],"dependencies":[],"dependents":[],"parameterHints":{},"parameterHintsV2":{},"isOnPremiseConnection":false,"bypassConsent":false,"dataSets":{"https://devgh.sharepoint.com/sites/TEOCDemo":{"dataSources":{"PIO Document Requests_1":{"tableName":"6adb2a59-84a3-4d5d-809e-8819dd5a7718"},"PIO Document Requests":{"tableName":"6adb2a59-84a3-4d5d-809e-8819dd5a7718"}}}},"apiTier":"Standard","actions":["providers/PowerPlatform.Governance/Operations/Read"]},"96a9405f-1256-4584-8b4c-075100ba6a6e":{"id":"/providers/microsoft.powerapps/apis/shared_teams","displayName":"Microsoft Teams","iconUri":"https://connectoricons-prod.azureedge.net/releases/v1.0.1657/1.0.1657.3443/teams/icon.png","dataSources":["MicrosoftTeams"],"dependencies":[],"dependents":[],"parameterHints":{},"parameterHintsV2":{},"isOnPremiseConnection":false,"bypassConsent":false,"dataSets":{},"apiTier":"Standard"}}</ConnectionReferences>
+  <DatabaseReferences>{}</DatabaseReferences>
+  <CanConsumeAppPass>1</CanConsumeAppPass>
+  <CanvasAppType>0</CanvasAppType>
+  <BypassConsent>0</BypassConsent>
+  <EmbeddedApp>{"type":"SharepointFormApp","screenWidth":1366,"screenHeight":768,"siteId":"https://devgh.sharepoint.com/sites/TEOCdemo","listId":"6adb2a59-84a3-4d5d-809e-8819dd5a7718","listUrl":"https://devgh.sharepoint.com/sites/TEOCdemo/Lists/PIO%20Document%20Requests/AllItems.aspx"}</EmbeddedApp>
+  <IntroducedVersion>1.0</IntroducedVersion>
+  <CdsDependencies>{"cdsdependencies":[]}</CdsDependencies>
+  <IsCustomizable>1</IsCustomizable>
+  <BackgroundImageUri>/CanvasApps/cr85b_demopiodocumentapproval_8ebd4_BackgroundImageUri</BackgroundImageUri>
+  <DocumentUri>/CanvasApps/cr85b_demopiodocumentapproval_8ebd4_DocumentUri.msapp</DocumentUri>
+</CanvasApp>

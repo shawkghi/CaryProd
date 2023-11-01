@@ -1,0 +1,11 @@
+<environmentvariabledefinition schemaname="new_AppIDURL">
+  <defaultvalue>f7d47c4ec9024ecd86fc0a6c152036dd</defaultvalue>
+  <displayname default="VTEOC-AppIDURL">
+    <label description="VTEOC-AppIDURL" languagecode="1033" />
+  </displayname>
+  <introducedversion>1.1.0.14</introducedversion>
+  <iscustomizable>1</iscustomizable>
+  <isrequired>0</isrequired>
+  <secretstore>0</secretstore>
+  <type>100000000</type>
+</environmentvariabledefinition>

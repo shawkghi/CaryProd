@@ -1,0 +1,317 @@
+{
+  "properties": {
+    "connectionReferences": {
+      "shared_salesforce": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "democop_sharedsalesforce_39be6"
+        },
+        "api": {
+          "name": "shared_salesforce"
+        }
+      },
+      "shared_teams": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "democop_sharedteams_852ec"
+        },
+        "api": {
+          "name": "shared_teams"
+        }
+      },
+      "shared_conversionservice": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "democop_sharedconversionservice_8fbac"
+        },
+        "api": {
+          "name": "shared_conversionservice"
+        }
+      }
+    },
+    "definition": {
+      "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+      "contentVersion": "1.0.0.0",
+      "parameters": {
+        "$connections": {
+          "defaultValue": {},
+          "type": "Object"
+        },
+        "$authentication": {
+          "defaultValue": {},
+          "type": "SecureObject"
+        }
+      },
+      "triggers": {
+        "When_a_record_is_created": {
+          "recurrence": {
+            "interval": 5,
+            "frequency": "Minute"
+          },
+          "splitOn": "@triggerOutputs()?['body/value']",
+          "metadata": {
+            "operationMetadataId": "c94e1f67-c3bc-44df-81c4-6392e6fdf968"
+          },
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_salesforce",
+              "operationId": "GetOnNewItems",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_salesforce"
+            },
+            "parameters": {
+              "table": "EOC_SigUpdate__c"
+            },
+            "authentication": "@parameters('$authentication')"
+          }
+        }
+      },
+      "actions": {
+        "Get_records_Incidents": {
+          "runAfter": {},
+          "metadata": {
+            "operationMetadataId": "d0cc822e-ebd5-4057-ba2e-dad4e509e2dd"
+          },
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_salesforce",
+              "operationId": "GetItems",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_salesforce"
+            },
+            "parameters": {
+              "table": "Incident",
+              "$filter": "Id eq '@{triggerOutputs()?['body/Incident__c']}'"
+            },
+            "authentication": "@parameters('$authentication')"
+          },
+          "runtimeConfiguration": {
+            "paginationPolicy": {
+              "minimumItemCount": 5000
+            }
+          }
+        },
+        "Initialize_variable_IncidentName": {
+          "runAfter": {
+            "Get_records_Incidents": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "4bb14fd1-5fd3-4683-8711-df3a87047c9e"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "IncidentName",
+                "type": "string"
+              }
+            ]
+          }
+        },
+        "Apply_to_each_3": {
+          "foreach": "@outputs('Get_records_Incidents')?['body/value']",
+          "actions": {
+            "Set_variable_2": {
+              "runAfter": {},
+              "metadata": {
+                "operationMetadataId": "aed87bc8-60b4-4b84-a69f-3ad0ed1173a7"
+              },
+              "type": "SetVariable",
+              "inputs": {
+                "name": "IncidentName",
+                "value": "@items('Apply_to_each_3')?['Subject']"
+              }
+            }
+          },
+          "runAfter": {
+            "Initialize_variable_IncidentName": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "48a5bd6c-ae83-4231-9845-c56e26bf7392"
+          },
+          "type": "Foreach"
+        },
+        "Initialize_variable_TeamID": {
+          "runAfter": {
+            "Apply_to_each_3": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "56bb8184-cb97-4729-867a-dbebe034f508"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "TeamID",
+                "type": "string"
+              }
+            ]
+          }
+        },
+        "List_teams": {
+          "runAfter": {
+            "Initialize_variable_TeamID": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "8ba1608d-c31b-4fad-871f-4415eea9b469"
+          },
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_teams",
+              "operationId": "GetAllTeams",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_teams"
+            },
+            "parameters": {},
+            "authentication": "@parameters('$authentication')"
+          }
+        },
+        "Apply_to_each": {
+          "foreach": "@outputs('List_teams')?['body/value']",
+          "actions": {
+            "Condition": {
+              "actions": {
+                "List_channels": {
+                  "runAfter": {},
+                  "metadata": {
+                    "operationMetadataId": "76f9719d-ddf9-40df-934d-9fcf3ebca089"
+                  },
+                  "type": "OpenApiConnection",
+                  "inputs": {
+                    "host": {
+                      "connectionName": "shared_teams",
+                      "operationId": "GetChannelsForGroup",
+                      "apiId": "/providers/Microsoft.PowerApps/apis/shared_teams"
+                    },
+                    "parameters": {
+                      "groupId": "@items('Apply_to_each')?['id']"
+                    },
+                    "authentication": "@parameters('$authentication')"
+                  }
+                },
+                "Loop_through_channel_list": {
+                  "foreach": "@outputs('List_channels')?['body/value']",
+                  "actions": {
+                    "Condition_2": {
+                      "actions": {
+                        "Apply_to_each_2": {
+                          "foreach": "@outputs('Get_records_Incidents')?['body/value']",
+                          "actions": {
+                            "Html_to_text": {
+                              "runAfter": {},
+                              "metadata": {
+                                "operationMetadataId": "38fc499b-907f-4112-8a39-e2d513ecd51c"
+                              },
+                              "type": "OpenApiConnection",
+                              "inputs": {
+                                "host": {
+                                  "connectionName": "shared_conversionservice",
+                                  "operationId": "HtmlToText",
+                                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_conversionservice"
+                                },
+                                "parameters": {
+                                  "Content": "<p>@{triggerOutputs()?['body/Content__c']}</p>"
+                                },
+                                "authentication": "@parameters('$authentication')"
+                              }
+                            },
+                            "Post_card_in_a_chat_or_channel": {
+                              "runAfter": {
+                                "Html_to_text": [
+                                  "Succeeded"
+                                ]
+                              },
+                              "metadata": {
+                                "operationMetadataId": "5e27530e-9cda-407c-a50c-5bc4e0253ce8"
+                              },
+                              "type": "OpenApiConnection",
+                              "inputs": {
+                                "host": {
+                                  "connectionName": "shared_teams",
+                                  "operationId": "PostCardToConversation",
+                                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_teams"
+                                },
+                                "parameters": {
+                                  "poster": "User",
+                                  "location": "Channel",
+                                  "body/recipient/groupId": "@items('Apply_to_each')?['id']",
+                                  "body/recipient/channelId": "@items('Loop_through_channel_list')?['id']",
+                                  "body/messageBody": "{\n    \"type\": \"AdaptiveCard\",\n    \"body\": [\n        {\n            \"type\": \"TextBlock\",\n            \"text\": \"Significant Update\",\n            \"wrap\": true,\n            \"style\": \"heading\",\n            \"color\": \"Attention\",\n            \"weight\": \"Bolder\",\n            \"size\": \"ExtraLarge\"\n        },\n        {\n            \"type\": \"TextBlock\",\n            \"size\": \"Medium\",\n            \"weight\": \"Bolder\",\n            \"text\": \"@{triggerOutputs()?['body/Name']}\",\n            \"style\": \"heading\",\n            \"wrap\": true\n        },\n        {\n            \"type\": \"TextBlock\",\n            \"text\": \"@{body('Html_to_text')}\",\n            \"wrap\": true\n        }\n    ],\n    \"actions\": [\n        {\n            \"type\": \"Action.OpenUrl\",\n            \"title\": \"View in Salesforce\",\n            \"url\": \"https://carync--ghsandbox.sandbox.lightning.force.com/lightning/r/EOC_SigUpdate__c/@{triggerOutputs()?['body/Id']}/view\",\n            \"role\": \"button\"\n        }\n    ],\n    \"$schema\": \"http://adaptivecards.io/schemas/adaptive-card.json\",\n    \"version\": \"1.5\"\n}"
+                                },
+                                "authentication": "@parameters('$authentication')"
+                              }
+                            }
+                          },
+                          "runAfter": {},
+                          "metadata": {
+                            "operationMetadataId": "5c0ef5c5-ca8c-40d8-a55a-625c0ec8cb65"
+                          },
+                          "type": "Foreach"
+                        }
+                      },
+                      "runAfter": {},
+                      "expression": {
+                        "equals": [
+                          "@items('Loop_through_channel_list')?['displayName']",
+                          "General"
+                        ]
+                      },
+                      "metadata": {
+                        "operationMetadataId": "21ddb295-f67c-48b1-acd5-7e6748fe7c14"
+                      },
+                      "type": "If"
+                    }
+                  },
+                  "runAfter": {
+                    "List_channels": [
+                      "Succeeded"
+                    ]
+                  },
+                  "metadata": {
+                    "operationMetadataId": "3d9c3246-63e4-47cb-b964-39545ee4cf2e"
+                  },
+                  "type": "Foreach"
+                }
+              },
+              "runAfter": {},
+              "expression": {
+                "equals": [
+                  "@variables('IncidentName')",
+                  "@items('Apply_to_each')?['displayName']"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "193602fc-6158-45b8-aedf-4184e8676738"
+              },
+              "type": "If"
+            }
+          },
+          "runAfter": {
+            "List_teams": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "9220bac0-5fb5-4c84-9cfb-62305dbe90cb"
+          },
+          "type": "Foreach",
+          "runtimeConfiguration": {
+            "concurrency": {
+              "repetitions": 20
+            }
+          }
+        }
+      }
+    },
+    "templateName": ""
+  },
+  "schemaVersion": "1.0.0.0"
+}

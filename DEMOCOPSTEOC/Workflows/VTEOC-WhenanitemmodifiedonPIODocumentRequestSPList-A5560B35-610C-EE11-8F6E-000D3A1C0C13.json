@@ -1,0 +1,129 @@
+{
+  "properties": {
+    "connectionReferences": {
+      "shared_office365": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "new_sharedoffice365_abd9b"
+        },
+        "api": {
+          "name": "shared_office365"
+        }
+      },
+      "shared_commondataserviceforapps": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "democop_sharedcommondataserviceforapps_70956"
+        },
+        "api": {
+          "name": "shared_commondataserviceforapps"
+        }
+      }
+    },
+    "definition": {
+      "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+      "contentVersion": "1.0.0.0",
+      "parameters": {
+        "$connections": {
+          "defaultValue": {},
+          "type": "Object"
+        },
+        "$authentication": {
+          "defaultValue": {},
+          "type": "SecureObject"
+        },
+        "FailureNotificationEmail (new_FailureNotificationEmail)": {
+          "defaultValue": "shawk@devgh.onmicrosoft.com",
+          "type": "String",
+          "metadata": {
+            "schemaName": "new_FailureNotificationEmail"
+          }
+        }
+      },
+      "triggers": {
+        "When_a_row_is_added,_modified_or_deleted": {
+          "metadata": {
+            "operationMetadataId": "b6f92a36-5d18-4dd8-9560-e5ef4438ca54"
+          },
+          "type": "OpenApiConnectionWebhook",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_commondataserviceforapps",
+              "operationId": "SubscribeWebhookTrigger",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
+            },
+            "parameters": {
+              "subscriptionRequest/message": 3,
+              "subscriptionRequest/entityname": "crb97_piodocumentrequests_2",
+              "subscriptionRequest/scope": 4
+            },
+            "authentication": "@parameters('$authentication')"
+          }
+        }
+      },
+      "actions": {
+        "Condition_Check_if_Approver_field_is_not_empty": {
+          "actions": {
+            "Send_an_email_(V2)": {
+              "runAfter": {},
+              "metadata": {
+                "operationMetadataId": "ca023afb-1a76-4946-b0db-63051886b246"
+              },
+              "type": "OpenApiConnection",
+              "inputs": {
+                "host": {
+                  "connectionName": "shared_office365",
+                  "operationId": "SendEmailV2",
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_office365"
+                },
+                "parameters": {
+                  "emailMessage/To": "@parameters('FailureNotificationEmail (new_FailureNotificationEmail)')",
+                  "emailMessage/Subject": "PIO Document Request has been assigned for review !",
+                  "emailMessage/Body": "<p><span style=\"color: rgb(184,49,47)\"><strong>PIO Document request has been&nbsp;assigned to Approver: </strong></span><span style=\"color: rgb(184,49,47)\"><strong>@{triggerOutputs()?['body/crb97_pioapprover']}</strong></span><span style=\"color: rgb(184,49,47)\"><strong><br>\n<br>\nPlease check the link to access PIO request for action: </strong></span><span style=\"color: rgb(184,49,47)\"><strong>@{triggerOutputs()?['body/crb97_publishedlink']}</strong></span><span style=\"color: rgb(184,49,47)\"><strong></strong></span></p>",
+                  "emailMessage/Importance": "High"
+                },
+                "authentication": "@parameters('$authentication')"
+              }
+            }
+          },
+          "runAfter": {
+            "Compose_html_email_body": [
+              "Succeeded"
+            ]
+          },
+          "expression": {
+            "and": [
+              {
+                "greater": [
+                  "@length(triggerOutputs()?['body/PIOApprover/Email'])",
+                  0
+                ]
+              },
+              {
+                "equals": [
+                  "",
+                  "In Review"
+                ]
+              }
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "48bc445a-a79c-427b-823b-9a13728d2b97"
+          },
+          "type": "If"
+        },
+        "Compose_html_email_body": {
+          "runAfter": {},
+          "metadata": {
+            "operationMetadataId": "35feb8a4-c7e4-4808-9a1e-31750960ab7a"
+          },
+          "type": "Compose",
+          "inputs": "<html>\n\n<body>\n\n To check the details of your support PIO request please click on the link below.<br>\n<br>\n\n<a href=\"https://apps.powerapps.com/play/e/default-06901596-5550-425c-abe0-3240ed6ec7ae/a/faf90d58-b654-4619-b9bf-2a8e6bcba425?tenantId=06901596-5550-425c-abe0-3240ed6ec7ae&piorequestid=\">Link To PIO Request</a>\n\n</body>\n\n</html>"
+        }
+      },
+      "outputs": {}
+    },
+    "templateName": ""
+  },
+  "schemaVersion": "1.0.0.0"
+}

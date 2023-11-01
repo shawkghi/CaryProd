@@ -1,0 +1,271 @@
+{
+  "properties": {
+    "connectionReferences": {
+      "shared_microsoftflowforadmins_1": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "new_sharedmicrosoftflowforadmins_1953f"
+        },
+        "api": {
+          "name": "shared_microsoftflowforadmins"
+        }
+      },
+      "shared_office365_1": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "new_sharedoffice365_23120"
+        },
+        "api": {
+          "name": "shared_office365"
+        }
+      },
+      "shared_commondataserviceforapps": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "democop_sharedcommondataserviceforapps_70956"
+        },
+        "api": {
+          "name": "shared_commondataserviceforapps"
+        }
+      }
+    },
+    "definition": {
+      "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+      "contentVersion": "1.0.0.0",
+      "parameters": {
+        "$connections": {
+          "defaultValue": {},
+          "type": "Object"
+        },
+        "$authentication": {
+          "defaultValue": {},
+          "type": "SecureObject"
+        },
+        "FailureNotificationEmail (new_FailureNotificationEmail)": {
+          "defaultValue": "shawk@devgh.onmicrosoft.com",
+          "type": "String",
+          "metadata": {
+            "schemaName": "new_FailureNotificationEmail"
+          }
+        }
+      },
+      "triggers": {
+        "manual": {
+          "metadata": {
+            "operationMetadataId": "6b1e00be-dc08-475b-9cb6-595ebe8439f0"
+          },
+          "type": "Request",
+          "kind": "Button",
+          "inputs": {
+            "schema": {
+              "type": "object",
+              "properties": {},
+              "required": []
+            }
+          }
+        }
+      },
+      "actions": {
+        "Condition": {
+          "actions": {
+            "Disable_Flow_as_Admin": {
+              "runAfter": {},
+              "metadata": {
+                "operationMetadataId": "042c629c-e1ce-420f-ba07-d408cf308187"
+              },
+              "type": "OpenApiConnection",
+              "inputs": {
+                "host": {
+                  "connectionName": "shared_microsoftflowforadmins_1",
+                  "operationId": "Disable-AdminFlow",
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_microsoftflowforadmins"
+                },
+                "parameters": {
+                  "environment": "4889dca5-dee5-ee7b-b377-61e1002e011b",
+                  "flow": "905a43e0-cba7-4790-aab4-28d01a3bdbba",
+                  "api-version": "2016-11-01"
+                },
+                "authentication": {
+                  "type": "Raw",
+                  "value": "@json(decodeBase64(triggerOutputs().headers['X-MS-APIM-Tokens']))['$ConnectionKey']"
+                }
+              }
+            }
+          },
+          "runAfter": {
+            "Filter_array": [
+              "Succeeded"
+            ]
+          },
+          "else": {
+            "actions": {
+              "Enable_Flow_as_Admin": {
+                "runAfter": {},
+                "metadata": {
+                  "operationMetadataId": "cf564c7f-90cc-4b58-84c7-f204e4efac0c"
+                },
+                "type": "OpenApiConnection",
+                "inputs": {
+                  "host": {
+                    "connectionName": "shared_microsoftflowforadmins_1",
+                    "operationId": "Enable-AdminFlow",
+                    "apiId": "/providers/Microsoft.PowerApps/apis/shared_microsoftflowforadmins"
+                  },
+                  "parameters": {
+                    "environment": "4889dca5-dee5-ee7b-b377-61e1002e011b",
+                    "flow": "905a43e0-cba7-4790-aab4-28d01a3bdbba",
+                    "api-version": "2016-11-01"
+                  },
+                  "authentication": {
+                    "type": "Raw",
+                    "value": "@json(decodeBase64(triggerOutputs().headers['X-MS-APIM-Tokens']))['$ConnectionKey']"
+                  }
+                }
+              }
+            }
+          },
+          "expression": {
+            "less": [
+              "@length(body('Filter_array'))",
+              1
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "f2b1ac63-1b43-4171-89dd-64cfb85db20d"
+          },
+          "type": "If"
+        },
+        "Respond_to_a_PowerApp_or_flow": {
+          "runAfter": {
+            "Condition": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "db052ebb-527f-47ca-936e-4e0f76c236cd"
+          },
+          "type": "Response",
+          "kind": "PowerApp",
+          "inputs": {
+            "statusCode": 200,
+            "body": {
+              "status": "Succeeded"
+            },
+            "schema": {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "title": "Status",
+                  "x-ms-dynamically-added": true,
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "Scope_Failure_Notifications": {
+          "actions": {
+            "Compose_Flow_run_link": {
+              "runAfter": {},
+              "metadata": {
+                "operationMetadataId": "304e2c8e-c6d8-4bd0-ac4d-57951dd57763"
+              },
+              "type": "Compose",
+              "inputs": "@concat('https://us.flow.microsoft.com/manage/environments/', workflow()?['tags']?['environmentName'], '/flows/', workflow()?['name'], '/runs/', workflow()?['run']['name'])"
+            },
+            "Send_an_email_(V2)_Failure_notification": {
+              "runAfter": {
+                "Compose_Flow_run_link": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "bd4b39c2-3462-4a00-b21d-d8ac056f00d2"
+              },
+              "type": "OpenApiConnection",
+              "inputs": {
+                "host": {
+                  "connectionName": "shared_office365_1",
+                  "operationId": "SendEmailV2",
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_office365"
+                },
+                "parameters": {
+                  "emailMessage/To": "@parameters('FailureNotificationEmail (new_FailureNotificationEmail)')",
+                  "emailMessage/Subject": "Your @{workflow()?['tags']?['flowDisplayName']} flow failed",
+                  "emailMessage/Body": "<p>Check your flow.<br>\n<br>\n<a href=\"@{outputs('Compose_Flow_run_link')}\">Flow Run Link</a>&nbsp;</p>"
+                },
+                "authentication": {
+                  "type": "Raw",
+                  "value": "@json(decodeBase64(triggerOutputs().headers['X-MS-APIM-Tokens']))['$ConnectionKey']"
+                }
+              }
+            },
+            "Terminate_Mark_flow_run_failure": {
+              "runAfter": {
+                "Send_an_email_(V2)_Failure_notification": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "c3050a38-c258-4145-b3fa-4d5e80d70b67"
+              },
+              "type": "Terminate",
+              "inputs": {
+                "runStatus": "Failed"
+              }
+            }
+          },
+          "runAfter": {
+            "Respond_to_a_PowerApp_or_flow": [
+              "Failed",
+              "Skipped"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "072e1b99-2b98-4cdc-bb50-f9ef10d9a137"
+          },
+          "type": "Scope",
+          "description": "Set this Scope's Configure run after settings to \"has failed\", \"is skipped\", and \"has timed out\"."
+        },
+        "List_rows": {
+          "runAfter": {},
+          "metadata": {
+            "operationMetadataId": "6b737779-80d4-4ea8-9eb7-77771e748a30"
+          },
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_commondataserviceforapps",
+              "operationId": "ListRecords",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
+            },
+            "parameters": {
+              "entityName": "crb97_teocincidenttransaction_3s"
+            },
+            "authentication": {
+              "type": "Raw",
+              "value": "@json(decodeBase64(triggerOutputs().headers['X-MS-APIM-Tokens']))['$ConnectionKey']"
+            }
+          }
+        },
+        "Filter_array": {
+          "runAfter": {
+            "List_rows": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "3abddde0-2fb7-4aa2-a11a-a4d5cbedef55"
+          },
+          "type": "Query",
+          "inputs": {
+            "from": "@outputs('List_rows')?['body/value']",
+            "where": "@equals(item()?['statecode'], 'Active')"
+          }
+        }
+      }
+    },
+    "templateName": ""
+  },
+  "schemaVersion": "1.0.0.0"
+}

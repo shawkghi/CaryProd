@@ -1,0 +1,2633 @@
+{
+  "properties": {
+    "connectionReferences": {
+      "shared_arcgis": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "democop_sharedarcgis_f440d"
+        },
+        "api": {
+          "name": "shared_arcgis"
+        }
+      },
+      "shared_sharepointonline_1": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "new_sharedsharepointonline_1a1dc"
+        },
+        "api": {
+          "name": "shared_sharepointonline"
+        }
+      },
+      "shared_teams_1": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "new_sharedteams_78e78"
+        },
+        "api": {
+          "name": "shared_teams"
+        }
+      },
+      "shared_wordonlinebusiness_1": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "new_sharedwordonlinebusiness_0a536"
+        },
+        "api": {
+          "name": "shared_wordonlinebusiness"
+        }
+      },
+      "shared_office365users_1": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "new_sharedoffice365users_8f9bf"
+        },
+        "api": {
+          "name": "shared_office365users"
+        }
+      },
+      "shared_office365groups": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "new_sharedoffice365groups_ecfa3"
+        },
+        "api": {
+          "name": "shared_office365groups"
+        }
+      },
+      "shared_office365_1": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "new_sharedoffice365_23120"
+        },
+        "api": {
+          "name": "shared_office365"
+        }
+      },
+      "shared_survey123": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "new_sharedsurvey123_04d0f"
+        },
+        "api": {
+          "name": "shared_survey123"
+        }
+      }
+    },
+    "definition": {
+      "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+      "contentVersion": "1.0.0.0",
+      "parameters": {
+        "$connections": {
+          "defaultValue": {},
+          "type": "Object"
+        },
+        "$authentication": {
+          "defaultValue": {},
+          "type": "SecureObject"
+        },
+        "FailureNotificationEmail (new_FailureNotificationEmail)": {
+          "defaultValue": "shawk@devgh.onmicrosoft.com",
+          "type": "String",
+          "metadata": {
+            "schemaName": "new_FailureNotificationEmail"
+          }
+        },
+        "DatafromFeatureLayer (new_DatafromFeatureLayer)": {
+          "defaultValue": "455497b160de42a3a60e9d4e7691d125layerId0",
+          "type": "String",
+          "metadata": {
+            "schemaName": "new_DatafromFeatureLayer"
+          }
+        },
+        "TEOC-DEMO-SharepointSite (new_TEOCDEMOSharepointSite)": {
+          "defaultValue": "https://devgh.sharepoint.com/sites/TEOCDemo",
+          "type": "String",
+          "metadata": {
+            "schemaName": "new_TEOCDEMOSharepointSite"
+          }
+        }
+      },
+      "triggers": {
+        "When_a_survey_response_is_submitted": {
+          "metadata": {
+            "operationMetadataId": "4eb32248-6636-410a-a11e-fb85135b2f2a"
+          },
+          "type": "OpenApiConnectionWebhook",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_survey123",
+              "operationId": "AddData",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_survey123"
+            },
+            "parameters": {
+              "surveyId": "fe619efaa41648dda4b57175fe789a84",
+              "addWebhookBody/webhook/includePortalInfo": true,
+              "addWebhookBody/webhook/includeUserInfo": true,
+              "addWebhookBody/webhook/includeSurveyInfo": true,
+              "addWebhookBody/webhook/includeServiceRequest": true,
+              "addWebhookBody/webhook/includeServiceResponse": true
+            },
+            "authentication": "@parameters('$authentication')"
+          }
+        }
+      },
+      "actions": {
+        "Get_data_from_feature_layer": {
+          "runAfter": {},
+          "metadata": {
+            "operationMetadataId": "09abed7a-e00d-4d70-bcea-94eb23e18151"
+          },
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_arcgis",
+              "operationId": "GetFeatureLayerData",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_arcgis"
+            },
+            "parameters": {
+              "contentFilter": "my content",
+              "userLayer": "@parameters('DatafromFeatureLayer (new_DatafromFeatureLayer)')",
+              "format": "JSON",
+              "where": "team_id = '{@{triggerOutputs()?['body/feature/attributes/team_id']}}' And sentToSitSum = 'yes' And report_period = '@{triggerOutputs()?['body/feature/attributes/report_period']}'",
+              "returnGeometry": false
+            },
+            "authentication": "@parameters('$authentication')"
+          },
+          "runtimeConfiguration": {
+            "contentTransfer": {
+              "transferMode": "Chunked"
+            }
+          }
+        },
+        "Initialize_variable_IncidentName": {
+          "runAfter": {
+            "Get_data_from_feature_layer": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "56340743-8db7-4234-bbf2-3d828a4ad19a"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "IncidentName",
+                "type": "string"
+              }
+            ]
+          }
+        },
+        "Initialize_variable_TEOCNumber": {
+          "runAfter": {
+            "Initialize_variable_SharepointSite": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "6b282f85-4b94-46b3-9854-40f516d447fc"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "TEOCNumber",
+                "type": "string"
+              }
+            ]
+          }
+        },
+        "Initialize_variable_FileName": {
+          "runAfter": {
+            "Initialize_variable_orgChartURL": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "e3c06fda-7f2c-4ef0-9a6b-81940dc0d29b"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "FileName",
+                "type": "string"
+              }
+            ]
+          }
+        },
+        "Initialize_variable_IncidentDirectoryName": {
+          "runAfter": {
+            "Initialize_variable_FileName": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "b13b1ac5-1b8a-4409-bc0e-5690c88dd5d8"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "IncidentDirectoryName",
+                "type": "string"
+              }
+            ]
+          }
+        },
+        "Get_word_template": {
+          "runAfter": {
+            "Initialize_variable_9": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "%252fShared%2bDocuments%252fWord%2bTemplates%252fSitRepTemplate-2023.docx": "/Shared Documents/Word Templates/SitRepTemplate-2023.docx",
+            "operationMetadataId": "db990cf0-c171-435c-b367-7928a0b2afcd",
+            "%252fShared%2bDocuments%252fWord%2bTemplates%252fSitRepTemplate-2023v2.docx": "/Shared Documents/Word Templates/SitRepTemplate-2023v2.docx"
+          },
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_sharepointonline_1",
+              "operationId": "GetFileContent",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline"
+            },
+            "parameters": {
+              "dataset": "@parameters('TEOC-DEMO-SharepointSite (new_TEOCDEMOSharepointSite)')",
+              "id": "%252fShared%2bDocuments%252fWord%2bTemplates%252fSitRepTemplate-2023v2.docx",
+              "inferContentType": true
+            },
+            "authentication": "@parameters('$authentication')"
+          }
+        },
+        "Set_variable_IncidentDirectoryName": {
+          "runAfter": {
+            "Set_variable_IncidentName": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "fceabb8d-7014-4e6c-bb76-539e4df973e8"
+          },
+          "type": "SetVariable",
+          "inputs": {
+            "name": "IncidentDirectoryName",
+            "value": "@variables('IncidentName')"
+          }
+        },
+        "Apply_to_each_2": {
+          "foreach": "@outputs('Get_data_from_feature_layer')?['body/data']",
+          "actions": {
+            "Condition": {
+              "actions": {
+                "Append_to_array_variable_2": {
+                  "runAfter": {},
+                  "metadata": {
+                    "operationMetadataId": "5790fdbc-d595-4ef2-9309-8ee79030b9c4"
+                  },
+                  "type": "AppendToArrayVariable",
+                  "inputs": {
+                    "name": "keyObjectivesArray",
+                    "value": {
+                      "KeyUpdate": "@{items('Apply_to_each_2')?['Attributes/objective_name']}",
+                      "ERGName": "@{items('Apply_to_each_2')?['Attributes/erg']}",
+                      "ERGUpdate": "@{items('Apply_to_each_2')?['Attributes/update_text']}",
+                      "ObjName": "@{items('Apply_to_each_2')?['Attributes/objective_name']}"
+                    }
+                  }
+                }
+              },
+              "runAfter": {},
+              "else": {
+                "actions": {
+                  "Condition_2": {
+                    "actions": {
+                      "Append_to_array_variable_3": {
+                        "runAfter": {},
+                        "metadata": {
+                          "operationMetadataId": "5790fdbc-d595-4ef2-9309-8ee79030b9c4"
+                        },
+                        "type": "AppendToArrayVariable",
+                        "inputs": {
+                          "name": "keyObjectivesArray",
+                          "value": {
+                            "KeyUpdate": "-",
+                            "ERGName": "@{items('Apply_to_each_2')?['Attributes/sub_objective_name']}",
+                            "ERGUpdate": "@{items('Apply_to_each_2')?['Attributes/update_text']}",
+                            "ObjName": "@{items('Apply_to_each_2')?['Attributes/objective_name']}"
+                          }
+                        }
+                      }
+                    },
+                    "runAfter": {},
+                    "else": {
+                      "actions": {
+                        "Condition_3": {
+                          "actions": {
+                            "Append_to_array_variable_4": {
+                              "runAfter": {},
+                              "metadata": {
+                                "operationMetadataId": "65a10988-13c1-4274-a95f-e8a32f658374"
+                              },
+                              "type": "AppendToArrayVariable",
+                              "inputs": {
+                                "name": "planningArray",
+                                "value": {
+                                  "planningERG": "@{items('Apply_to_each_2')?['Attributes/erg']}",
+                                  "planningUpdate": "@{items('Apply_to_each_2')?['Attributes/update_text']}",
+                                  "ObjName": "@{items('Apply_to_each_2')?['Attributes/objective_name']}"
+                                }
+                              }
+                            }
+                          },
+                          "runAfter": {},
+                          "else": {
+                            "actions": {
+                              "Append_to_array_variable": {
+                                "runAfter": {},
+                                "metadata": {
+                                  "operationMetadataId": "2adf5b72-f8ba-4320-b9f3-75eda130f2f6"
+                                },
+                                "type": "AppendToArrayVariable",
+                                "inputs": {
+                                  "name": "objectivesArray",
+                                  "value": {
+                                    "additionalERG": "@{items('Apply_to_each_2')?['Attributes/erg']}",
+                                    "additionalUpdate": "@{items('Apply_to_each_2')?['Attributes/update_text']}"
+                                  }
+                                }
+                              }
+                            }
+                          },
+                          "expression": {
+                            "not": {
+                              "equals": [
+                                "@items('Apply_to_each_2')?['Attributes/is_key_update']",
+                                "@null"
+                              ]
+                            }
+                          },
+                          "metadata": {
+                            "operationMetadataId": "cd9860c8-c804-40c7-bbb7-6d559fc5fcae"
+                          },
+                          "type": "If"
+                        }
+                      }
+                    },
+                    "expression": {
+                      "not": {
+                        "equals": [
+                          "@items('Apply_to_each_2')?['Attributes/sub_objective_name']",
+                          "@null"
+                        ]
+                      }
+                    },
+                    "metadata": {
+                      "operationMetadataId": "ff38f39a-f099-402e-a091-86a77c9e0a89"
+                    },
+                    "type": "If"
+                  }
+                }
+              },
+              "expression": {
+                "and": [
+                  {
+                    "not": {
+                      "equals": [
+                        "@items('Apply_to_each_2')?['Attributes/objective_name']",
+                        "@null"
+                      ]
+                    }
+                  },
+                  {
+                    "equals": [
+                      "@items('Apply_to_each_2')?['Attributes/sub_objective_name']",
+                      "@null"
+                    ]
+                  }
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "4717b332-7ebd-42c5-8f9c-46d5673f7a16"
+              },
+              "type": "If"
+            }
+          },
+          "runAfter": {
+            "Set_variable_IncidentDirectoryName": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "f23c93eb-4cad-4b12-b14e-024db905521a"
+          },
+          "type": "Foreach"
+        },
+        "Get_a_team_2": {
+          "runAfter": {
+            "Initialize_membershipArray": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "92f97e35-94d4-47b2-b3e0-762e26d0e566"
+          },
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_teams_1",
+              "operationId": "GetTeam",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_teams"
+            },
+            "parameters": {
+              "teamId": "@triggerOutputs()?['body/feature/attributes/team_id']"
+            },
+            "authentication": "@parameters('$authentication')"
+          }
+        },
+        "Set_variable_IncidentName": {
+          "runAfter": {
+            "Apply_to_each": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "a7eda7bb-5d71-48db-8180-0eace7284f34"
+          },
+          "type": "SetVariable",
+          "inputs": {
+            "name": "IncidentName",
+            "value": "@outputs('Get_a_team_2')?['body/displayName']"
+          }
+        },
+        "Populate_a_Microsoft_Word_template": {
+          "runAfter": {
+            "Condition_8": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "01CZIB45YNCAUYSQX3EFBZA5GDBEUXPTAB": "/Word Templates/SitRepTemplate-2023.docx",
+            "operationMetadataId": "b2931003-8d2f-4208-8175-add8dc0b4040",
+            "01CZIB454KOD3PFLBTO5FK6B4SB73D5R3G": "/Word Templates/SitRepTemplate-2023v2.docx",
+            "01FEP7DMNFGHVH3ZZHMRALKNK5BURUKXYL": "/Word Templates/SitRepTemplate-2023v2.docx"
+          },
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_wordonlinebusiness_1",
+              "operationId": "CreateFileItem",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_wordonlinebusiness"
+            },
+            "parameters": {
+              "source": "@parameters('TEOC-DEMO-SharepointSite (new_TEOCDEMOSharepointSite)')",
+              "drive": "b!WvktEExLcUSJ9laMqcxJMTnP9SfTCBdPrW7aSxepMPlX3jFMQd4TQZ2dtRStu-qi",
+              "file": "01FEP7DMNFGHVH3ZZHMRALKNK5BURUKXYL",
+              "dynamicFileSchema/237917295": "@variables('SharepointSite')",
+              "dynamicFileSchema/507562146": "@variables('planningArray')",
+              "dynamicFileSchema/525368632": "@variables('IncidentName')",
+              "dynamicFileSchema/1408877864": "@formatDateTime(utcNow(), 'MM-dd-yyyy')",
+              "dynamicFileSchema/2023275473": "@variables('NextICSMeetingDate')",
+              "dynamicFileSchema/2040773191": "@variables('IncidentName')",
+              "dynamicFileSchema/-1491320743": "@triggerOutputs()?['body/feature/attributes/report_period']",
+              "dynamicFileSchema/-2049136897": "@outputs('sort_by_event_array')",
+              "dynamicFileSchema/-1519384129": "@outputs('sort_by_key_update')",
+              "dynamicFileSchema/-1257041888": "@outputs('sort_by_erg')",
+              "dynamicFileSchema/-1327513392": "@variables('orgChartURL')",
+              "dynamicFileSchema/-2123062744": "@variables('membershipArray')"
+            },
+            "authentication": "@parameters('$authentication')"
+          }
+        },
+        "Get_files_(properties_only)": {
+          "runAfter": {
+            "Populate_a_Microsoft_Word_template": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "d2e50e1a-2c67-49a7-b0d2-b727bbc2985a"
+          },
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_sharepointonline_1",
+              "operationId": "GetFileItems",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline"
+            },
+            "parameters": {
+              "dataset": "@parameters('TEOC-DEMO-SharepointSite (new_TEOCDEMOSharepointSite)')",
+              "table": "4c31de57-de41-4113-9d9d-b514adbbeaa2",
+              "folderPath": "/Shared Documents/Incident Reports",
+              "$filter": "FileLeafRef eq '@{variables('FileName')}'"
+            },
+            "authentication": "@parameters('$authentication')"
+          }
+        },
+        "Condition_48": {
+          "actions": {
+            "Update_file": {
+              "runAfter": {},
+              "metadata": {
+                "operationMetadataId": "d1850c4d-abe4-41f6-8692-959cdf58424f"
+              },
+              "type": "OpenApiConnection",
+              "inputs": {
+                "host": {
+                  "connectionName": "shared_sharepointonline_1",
+                  "operationId": "UpdateFile",
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline"
+                },
+                "parameters": {
+                  "dataset": "@parameters('TEOC-DEMO-SharepointSite (new_TEOCDEMOSharepointSite)')",
+                  "id": "/Shared Documents/Incident Reports/@{variables('FileName')}",
+                  "body": "@body('Populate_a_Microsoft_Word_template')"
+                },
+                "authentication": "@parameters('$authentication')"
+              }
+            }
+          },
+          "runAfter": {
+            "Get_files_(properties_only)": [
+              "Succeeded"
+            ]
+          },
+          "else": {
+            "actions": {
+              "Create_file": {
+                "runAfter": {},
+                "metadata": {
+                  "operationMetadataId": "8faae5cf-c16f-4216-ad6c-d788392fa2b5"
+                },
+                "type": "OpenApiConnection",
+                "inputs": {
+                  "host": {
+                    "connectionName": "shared_sharepointonline_1",
+                    "operationId": "CreateFile",
+                    "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline"
+                  },
+                  "parameters": {
+                    "dataset": "@parameters('TEOC-DEMO-SharepointSite (new_TEOCDEMOSharepointSite)')",
+                    "folderPath": "/Shared Documents/Incident Reports",
+                    "name": "@variables('FileName')",
+                    "body": "@body('Populate_a_Microsoft_Word_template')"
+                  },
+                  "authentication": "@parameters('$authentication')"
+                },
+                "runtimeConfiguration": {
+                  "contentTransfer": {
+                    "transferMode": "Chunked"
+                  }
+                }
+              }
+            }
+          },
+          "expression": {
+            "greater": [
+              "@length(outputs('Get_files_(properties_only)')?['body/value'])",
+              0
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "4cbe7759-e5b8-4cc1-ad0e-34be5ca92458"
+          },
+          "type": "If"
+        },
+        "Set_variable_filename_": {
+          "runAfter": {
+            "sort_by_key_update_planning": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "bcbddbf0-b7b5-490c-a6f3-0acdbcafb9e9"
+          },
+          "type": "SetVariable",
+          "inputs": {
+            "name": "FileName",
+            "value": "SitRep-(@{triggerOutputs()?['body/feature/attributes/report_period']})-@{variables('IncidentName')}.docx"
+          }
+        },
+        "Initialize_objectivesarray": {
+          "runAfter": {
+            "Get_word_template": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "b99c08e9-ceaf-4777-a114-811ab07362bc"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "objectivesArray",
+                "type": "array"
+              }
+            ]
+          }
+        },
+        "Initialize_membershipArray": {
+          "runAfter": {
+            "Initialize_planningArray": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "70506c3b-4ecb-46d2-9056-49c5af16844d"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "membershipArray",
+                "type": "array"
+              }
+            ]
+          }
+        },
+        "Initialize_variable_keyObjectivesArray": {
+          "runAfter": {
+            "Initialize_objectivesarray": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "10b744b5-9cd5-4253-88b7-cb67f81f6320"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "keyObjectivesArray",
+                "type": "array"
+              }
+            ]
+          }
+        },
+        "sort_by_erg": {
+          "runAfter": {
+            "Apply_to_each_2": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "f8171d08-616a-4567-be18-dffe8a9cbbba"
+          },
+          "type": "Compose",
+          "inputs": "@sort(variables('objectivesArray'),'additionalERG')"
+        },
+        "sort_by_key_update": {
+          "runAfter": {
+            "sort_by_erg": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "f73634b4-671a-4d29-9ba7-27f8e5897719"
+          },
+          "type": "Compose",
+          "inputs": "@sort(variables('keyObjectivesArray'),'ObjName')"
+        },
+        "Initialize_planningArray": {
+          "runAfter": {
+            "Initialize_variable_keyObjectivesArray": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "00f41c56-7d4e-4041-bd84-365bad5339ee"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "planningArray",
+                "type": "array"
+              }
+            ]
+          }
+        },
+        "sort_by_key_update_planning": {
+          "runAfter": {
+            "sort_by_key_update": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "f73634b4-671a-4d29-9ba7-27f8e5897719"
+          },
+          "type": "Compose",
+          "inputs": "@sort(variables('planningArray'), 'ObjName')"
+        },
+        "List_all_tags_for_a_team": {
+          "runAfter": {
+            "Get_a_team_2": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "c5e79ee7-c172-408c-992f-667baebf37c7"
+          },
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_teams_1",
+              "operationId": "GetTags",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_teams"
+            },
+            "parameters": {
+              "groupId": "@outputs('Get_a_team_2')?['body/id']"
+            },
+            "authentication": "@parameters('$authentication')"
+          }
+        },
+        "Apply_to_each": {
+          "foreach": "@outputs('List_all_tags_for_a_team')?['body/value']",
+          "actions": {
+            "List_the_members_for_a_tag": {
+              "runAfter": {},
+              "metadata": {
+                "operationMetadataId": "a480c51a-19fa-45aa-8e2d-b4211f0108e5"
+              },
+              "type": "OpenApiConnection",
+              "inputs": {
+                "host": {
+                  "connectionName": "shared_teams_1",
+                  "operationId": "GetTagMembers",
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_teams"
+                },
+                "parameters": {
+                  "groupId": "@outputs('Get_a_team_2')?['body/id']",
+                  "tagId": "@items('Apply_to_each')?['id']"
+                },
+                "authentication": "@parameters('$authentication')"
+              }
+            },
+            "Apply_to_each_3": {
+              "foreach": "@outputs('List_the_members_for_a_tag')?['body/value']",
+              "actions": {
+                "Get_user_profile_(V2)": {
+                  "runAfter": {},
+                  "metadata": {
+                    "operationMetadataId": "e934f895-a041-45c7-a333-340b65f79d36"
+                  },
+                  "type": "OpenApiConnection",
+                  "inputs": {
+                    "host": {
+                      "connectionName": "shared_office365users_1",
+                      "operationId": "UserProfile_V2",
+                      "apiId": "/providers/Microsoft.PowerApps/apis/shared_office365users"
+                    },
+                    "parameters": {
+                      "id": "@items('Apply_to_each_3')?['userId']"
+                    },
+                    "authentication": "@parameters('$authentication')"
+                  }
+                },
+                "Condition_9": {
+                  "actions": {},
+                  "runAfter": {
+                    "Get_user_profile_(V2)": [
+                      "Succeeded"
+                    ]
+                  },
+                  "else": {
+                    "actions": {
+                      "Append_to_array_variable_5": {
+                        "runAfter": {},
+                        "metadata": {
+                          "operationMetadataId": "39d8d7aa-7b4f-40f5-80fa-bbe46b2fdd0e"
+                        },
+                        "type": "AppendToArrayVariable",
+                        "inputs": {
+                          "name": "membershipArray",
+                          "value": {
+                            "ERGContact": "@{items('Apply_to_each')?['displayName']}",
+                            "PositionContact": "@{outputs('Get_user_profile_(V2)')?['body/jobTitle']}",
+                            "NameContact": "@{outputs('Get_user_profile_(V2)')?['body/displayName']}",
+                            "PhoneContact": "@{outputs('Get_user_profile_(V2)')?['body/mobilePhone']}"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "expression": {
+                    "equals": [
+                      "@outputs('Get_user_profile_(V2)')?['body/id']",
+                      "775165ce-8dce-42d6-a6d9-95cbe4a3b8d0"
+                    ]
+                  },
+                  "metadata": {
+                    "operationMetadataId": "159fe7f1-647e-4c75-8c0b-31c83746b7e0"
+                  },
+                  "type": "If"
+                }
+              },
+              "runAfter": {
+                "List_the_members_for_a_tag": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "cc936eda-7b4e-4e8e-b041-bb85d2073d0c"
+              },
+              "type": "Foreach"
+            }
+          },
+          "runAfter": {
+            "Set_variable_SharepointSite": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "59a97147-7c9f-4b10-8f70-dd0fc179ba17"
+          },
+          "type": "Foreach"
+        },
+        "Set_variable_TEOCNumber": {
+          "runAfter": {
+            "List_all_tags_for_a_team": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "6578e5a7-c0c9-46f8-9ba1-170caf61e676"
+          },
+          "type": "SetVariable",
+          "inputs": {
+            "name": "TEOCNumber",
+            "value": "@{trim(split(outputs('Get_a_team_2')?['body/displayName'], '-')[0])}"
+          }
+        },
+        "Initialize_variable_orgChartURL": {
+          "runAfter": {
+            "Initialize_variable_TEOCNumber": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "4bbb3db6-fb34-4447-8796-fb4eed5afe44"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "orgChartURL",
+                "type": "string"
+              }
+            ]
+          }
+        },
+        "Set_variable_orgChartURL": {
+          "runAfter": {
+            "Set_variable_TEOCNumber": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "a0da02c0-280d-45bb-a229-5380823bacfa"
+          },
+          "type": "SetVariable",
+          "inputs": {
+            "name": "orgChartURL",
+            "value": "https://devgh.sharepoint.com/sites/TEOC_@{variables('TEOCNumber')}/Shared Documents/General/"
+          }
+        },
+        "Initialize_variable_SharepointSite": {
+          "runAfter": {
+            "Initialize_variable_IncidentName": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "2e9ac96d-357c-4b0f-92ce-b2dc2c3c4454"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "SharepointSite",
+                "type": "string"
+              }
+            ]
+          }
+        },
+        "Set_variable_SharepointSite": {
+          "runAfter": {
+            "Set_variable_orgChartURL": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "087cef06-002d-4a52-b65a-93a46bac9ef9"
+          },
+          "type": "SetVariable",
+          "inputs": {
+            "name": "SharepointSite",
+            "value": "https://devgh.sharepoint.com/sites/TEOC_@{variables('TEOCNumber')}/"
+          }
+        },
+        "Send_an_HTTP_request_V2": {
+          "runAfter": {
+            "Initialize_variable": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "39f4bf95-0f9e-4ce8-9c30-b4650807b759"
+          },
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_office365groups",
+              "operationId": "HttpRequestV2",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_office365groups"
+            },
+            "parameters": {
+              "Uri": "https://graph.microsoft.com/v1.0/groups/@{outputs('Get_a_team_2')?['body/id']}/events",
+              "Method": "GET",
+              "ContentType": "application/json",
+              "CustomHeader1": "Prefer:outlook.timezone=\"Eastern Standard Time\""
+            },
+            "authentication": "@parameters('$authentication')"
+          }
+        },
+        "Parse_JSON": {
+          "runAfter": {
+            "Send_an_HTTP_request_V2": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "d2b1d7c9-97f5-49f3-9e01-65fc7946e11e"
+          },
+          "type": "ParseJson",
+          "inputs": {
+            "content": "@body('Send_an_HTTP_request_V2')",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "value": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      },
+                      "createdDateTime": {
+                        "type": "string"
+                      },
+                      "lastModifiedDateTime": {
+                        "type": "string"
+                      },
+                      "changeKey": {
+                        "type": "string"
+                      },
+                      "categories": {
+                        "type": "array"
+                      },
+                      "originalStartTimeZone": {
+                        "type": "string"
+                      },
+                      "originalEndTimeZone": {
+                        "type": "string"
+                      },
+                      "iCalUId": {
+                        "type": "string"
+                      },
+                      "reminderMinutesBeforeStart": {
+                        "type": "integer"
+                      },
+                      "isReminderOn": {
+                        "type": "boolean"
+                      },
+                      "hasAttachments": {
+                        "type": "boolean"
+                      },
+                      "subject": {
+                        "type": "string"
+                      },
+                      "bodyPreview": {
+                        "type": "string"
+                      },
+                      "importance": {
+                        "type": "string"
+                      },
+                      "sensitivity": {
+                        "type": "string"
+                      },
+                      "isAllDay": {
+                        "type": "boolean"
+                      },
+                      "isCancelled": {
+                        "type": "boolean"
+                      },
+                      "isOrganizer": {
+                        "type": "boolean"
+                      },
+                      "responseRequested": {
+                        "type": "boolean"
+                      },
+                      "seriesMasterId": {},
+                      "showAs": {
+                        "type": "string"
+                      },
+                      "type": {
+                        "type": "string"
+                      },
+                      "webLink": {
+                        "type": "string"
+                      },
+                      "onlineMeetingUrl": {},
+                      "responseStatus": {
+                        "type": "object",
+                        "properties": {
+                          "response": {
+                            "type": "string"
+                          },
+                          "time": {
+                            "type": "string"
+                          }
+                        }
+                      },
+                      "body": {
+                        "type": "object",
+                        "properties": {
+                          "contentType": {
+                            "type": "string"
+                          },
+                          "content": {
+                            "type": "string"
+                          }
+                        }
+                      },
+                      "start": {
+                        "type": "object",
+                        "properties": {
+                          "dateTime": {
+                            "type": "string"
+                          },
+                          "timeZone": {
+                            "type": "string"
+                          }
+                        }
+                      },
+                      "end": {
+                        "type": "object",
+                        "properties": {
+                          "dateTime": {
+                            "type": "string"
+                          },
+                          "timeZone": {
+                            "type": "string"
+                          }
+                        }
+                      },
+                      "location": {
+                        "type": "object",
+                        "properties": {
+                          "displayName": {
+                            "type": "string"
+                          }
+                        }
+                      },
+                      "recurrence": {
+                        "type": [
+                          "object",
+                          "null"
+                        ],
+                        "properties": {
+                          "pattern": {
+                            "type": "object",
+                            "properties": {
+                              "type": {
+                                "type": "string"
+                              },
+                              "interval": {
+                                "type": "integer"
+                              },
+                              "month": {
+                                "type": "integer"
+                              },
+                              "dayOfMonth": {
+                                "type": "integer"
+                              },
+                              "daysOfWeek": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string"
+                                }
+                              },
+                              "firstDayOfWeek": {
+                                "type": "string"
+                              },
+                              "index": {
+                                "type": "string"
+                              }
+                            }
+                          },
+                          "range": {
+                            "type": "object",
+                            "properties": {
+                              "type": {
+                                "type": "string"
+                              },
+                              "startDate": {
+                                "type": "string"
+                              },
+                              "endDate": {
+                                "type": "string"
+                              },
+                              "recurrenceTimeZone": {
+                                "type": "string"
+                              },
+                              "numberOfOccurrences": {
+                                "type": "integer"
+                              }
+                            }
+                          }
+                        }
+                      },
+                      "attendees": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "type": {
+                              "type": "string"
+                            },
+                            "status": {
+                              "type": "object",
+                              "properties": {
+                                "response": {
+                                  "type": "string"
+                                },
+                                "time": {
+                                  "type": "string"
+                                }
+                              }
+                            },
+                            "emailAddress": {
+                              "type": "object",
+                              "properties": {
+                                "name": {
+                                  "type": "string"
+                                },
+                                "address": {
+                                  "type": "string"
+                                }
+                              }
+                            }
+                          },
+                          "required": [
+                            "type",
+                            "status",
+                            "emailAddress"
+                          ]
+                        }
+                      },
+                      "organizer": {
+                        "type": "object",
+                        "properties": {
+                          "emailAddress": {
+                            "type": "object",
+                            "properties": {
+                              "name": {
+                                "type": "string"
+                              },
+                              "address": {
+                                "type": "string"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "createdDateTime",
+                      "lastModifiedDateTime",
+                      "changeKey",
+                      "categories",
+                      "originalStartTimeZone",
+                      "originalEndTimeZone",
+                      "iCalUId",
+                      "reminderMinutesBeforeStart",
+                      "isReminderOn",
+                      "hasAttachments",
+                      "subject",
+                      "bodyPreview",
+                      "importance",
+                      "sensitivity",
+                      "isAllDay",
+                      "isCancelled",
+                      "isOrganizer",
+                      "responseRequested",
+                      "seriesMasterId",
+                      "showAs",
+                      "type",
+                      "webLink",
+                      "onlineMeetingUrl",
+                      "responseStatus",
+                      "body",
+                      "start",
+                      "end",
+                      "location",
+                      "recurrence",
+                      "attendees",
+                      "organizer"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "Initialize_variable": {
+          "runAfter": {
+            "Set_variable_filename_": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "0e6ee089-ad91-4998-9a1a-92207b5236ca"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "eventArray",
+                "type": "array"
+              }
+            ]
+          }
+        },
+        "Apply_to_each_4": {
+          "foreach": "@body('Parse_JSON')?['value']",
+          "actions": {
+            "Condition_4": {
+              "actions": {
+                "Parse_JSON_2": {
+                  "runAfter": {},
+                  "metadata": {
+                    "operationMetadataId": "98767856-347c-4848-8736-7b0c69181783"
+                  },
+                  "type": "ParseJson",
+                  "inputs": {
+                    "content": "@items('Apply_to_each_4')?['recurrence']",
+                    "schema": {
+                      "type": "object",
+                      "properties": {
+                        "pattern": {
+                          "type": "object",
+                          "properties": {
+                            "type": {
+                              "type": "string"
+                            },
+                            "interval": {
+                              "type": "integer"
+                            },
+                            "month": {
+                              "type": "integer"
+                            },
+                            "dayOfMonth": {
+                              "type": "integer"
+                            },
+                            "daysOfWeek": {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              }
+                            },
+                            "firstDayOfWeek": {
+                              "type": "string"
+                            },
+                            "index": {
+                              "type": "string"
+                            }
+                          }
+                        },
+                        "range": {
+                          "type": "object",
+                          "properties": {
+                            "type": {
+                              "type": "string"
+                            },
+                            "startDate": {
+                              "type": "string"
+                            },
+                            "endDate": {
+                              "type": "string"
+                            },
+                            "recurrenceTimeZone": {
+                              "type": "string"
+                            },
+                            "numberOfOccurrences": {
+                              "type": "integer"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "Set_variable_2": {
+                  "runAfter": {
+                    "Parse_JSON_2": [
+                      "Succeeded"
+                    ]
+                  },
+                  "metadata": {
+                    "operationMetadataId": "1982943c-197b-4b53-ae62-c0485d2941fc"
+                  },
+                  "type": "SetVariable",
+                  "inputs": {
+                    "name": "recurrence",
+                    "value": "@{body('Parse_JSON_2')?['pattern']?['daysOfWeek']}"
+                  }
+                },
+                "Compose": {
+                  "runAfter": {
+                    "Set_variable_7": [
+                      "Succeeded"
+                    ]
+                  },
+                  "metadata": {
+                    "operationMetadataId": "59a1065d-701f-4784-8105-58b3a1448c26"
+                  },
+                  "type": "Compose",
+                  "inputs": "@replace(variables('recurrence'),'[','')"
+                },
+                "Compose_2": {
+                  "runAfter": {
+                    "Compose": [
+                      "Succeeded"
+                    ]
+                  },
+                  "metadata": {
+                    "operationMetadataId": "404fc768-cf7e-4157-9ed4-69b045aec999"
+                  },
+                  "type": "Compose",
+                  "inputs": "@replace(outputs('Compose'),']','')"
+                },
+                "Compose_3": {
+                  "runAfter": {
+                    "Compose_2": [
+                      "Succeeded"
+                    ]
+                  },
+                  "metadata": {
+                    "operationMetadataId": "92ac9714-6e1e-43dd-a67b-1fc185e5f58b"
+                  },
+                  "type": "Compose",
+                  "inputs": "@replace(outputs('Compose_2'),'\"','')"
+                },
+                "Condition_6": {
+                  "actions": {
+                    "Compose_Choose_the_desired_day_of_week_number": {
+                      "runAfter": {},
+                      "metadata": {
+                        "operationMetadataId": "b3f2f71d-2088-4c5d-ba02-d2be6add8b61"
+                      },
+                      "type": "Compose",
+                      "inputs": "@int(dayofweek(variables('startdate'))) "
+                    },
+                    "Compose_Next_date_of_chosen_day_of_week_": {
+                      "runAfter": {
+                        "Compose_Choose_the_desired_day_of_week_number": [
+                          "Succeeded"
+                        ]
+                      },
+                      "metadata": {
+                        "operationMetadataId": "e34b270e-5e58-4dd0-b4a9-a69f97935fc4"
+                      },
+                      "type": "Compose",
+                      "inputs": "@adddays(utcNow(), if(greater(sub(dayofweek(utcNow()), outputs('Compose_Choose_the_desired_day_of_week_number')),0), add(7, sub(outputs('Compose_Choose_the_desired_day_of_week_number'), dayofweek(utcNow()))), int(replace(string(sub(dayofweek(utcNow()), outputs('Compose_Choose_the_desired_day_of_week_number'))), '-', ''))), 'yyyy-MM-dd')"
+                    },
+                    "Compose_6": {
+                      "runAfter": {
+                        "Compose_Next_date_of_chosen_day_of_week_": [
+                          "Succeeded"
+                        ]
+                      },
+                      "metadata": {
+                        "operationMetadataId": "2e3e2b1e-1dc6-41cf-9495-d7fc02145f31"
+                      },
+                      "type": "Compose",
+                      "inputs": "@formatDateTime(outputs('Compose_Next_date_of_chosen_day_of_week_'),'dd-MM-yyyy')"
+                    },
+                    "Set_variable_4": {
+                      "runAfter": {
+                        "Compose_6": [
+                          "Succeeded"
+                        ]
+                      },
+                      "metadata": {
+                        "operationMetadataId": "b230afe3-09a7-4865-8d5f-09839ad251e1"
+                      },
+                      "type": "SetVariable",
+                      "inputs": {
+                        "name": "nextmeetingdate",
+                        "value": "@{outputs('Compose_6')}"
+                      }
+                    },
+                    "Send_an_HTTP_request_V2_2": {
+                      "runAfter": {
+                        "Set_variable_4": [
+                          "Succeeded"
+                        ]
+                      },
+                      "metadata": {
+                        "operationMetadataId": "509db850-71f1-46e1-b25a-4f566fda5cf1"
+                      },
+                      "type": "OpenApiConnection",
+                      "inputs": {
+                        "host": {
+                          "connectionName": "shared_office365groups",
+                          "operationId": "HttpRequestV2",
+                          "apiId": "/providers/Microsoft.PowerApps/apis/shared_office365groups"
+                        },
+                        "parameters": {
+                          "Uri": "https://graph.microsoft.com/v1.0/groups/@{outputs('Get_a_team_2')?['body/id']}/events/@{items('Apply_to_each_4')?['id']}/instances?startDateTime=@{body('Parse_JSON_2')?['range']?['startDate']}&endDateTime=@{body('Parse_JSON_2')?['range']?['endDate']}",
+                          "Method": "GET",
+                          "ContentType": "application/json"
+                        },
+                        "authentication": "@parameters('$authentication')"
+                      }
+                    },
+                    "Parse_JSON_3": {
+                      "runAfter": {
+                        "Send_an_HTTP_request_V2_2": [
+                          "Succeeded"
+                        ]
+                      },
+                      "metadata": {
+                        "operationMetadataId": "009cf797-bacd-476d-a62b-e62fb565635c"
+                      },
+                      "type": "ParseJson",
+                      "inputs": {
+                        "content": "@body('Send_an_HTTP_request_V2_2')",
+                        "schema": {
+                          "type": "object",
+                          "properties": {
+                            "@@odata.context": {
+                              "type": "string"
+                            },
+                            "value": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "@@odata.etag": {
+                                    "type": "string"
+                                  },
+                                  "id": {
+                                    "type": "string"
+                                  },
+                                  "createdDateTime": {
+                                    "type": "string"
+                                  },
+                                  "lastModifiedDateTime": {
+                                    "type": "string"
+                                  },
+                                  "changeKey": {
+                                    "type": "string"
+                                  },
+                                  "categories": {
+                                    "type": "array"
+                                  },
+                                  "originalStartTimeZone": {
+                                    "type": "string"
+                                  },
+                                  "originalEndTimeZone": {
+                                    "type": "string"
+                                  },
+                                  "iCalUId": {
+                                    "type": "string"
+                                  },
+                                  "reminderMinutesBeforeStart": {
+                                    "type": "integer"
+                                  },
+                                  "isReminderOn": {
+                                    "type": "boolean"
+                                  },
+                                  "hasAttachments": {
+                                    "type": "boolean"
+                                  },
+                                  "subject": {
+                                    "type": "string"
+                                  },
+                                  "bodyPreview": {
+                                    "type": "string"
+                                  },
+                                  "importance": {
+                                    "type": "string"
+                                  },
+                                  "sensitivity": {
+                                    "type": "string"
+                                  },
+                                  "isAllDay": {
+                                    "type": "boolean"
+                                  },
+                                  "isCancelled": {
+                                    "type": "boolean"
+                                  },
+                                  "isOrganizer": {
+                                    "type": "boolean"
+                                  },
+                                  "responseRequested": {
+                                    "type": "boolean"
+                                  },
+                                  "seriesMasterId": {
+                                    "type": "string"
+                                  },
+                                  "showAs": {
+                                    "type": "string"
+                                  },
+                                  "type": {
+                                    "type": "string"
+                                  },
+                                  "webLink": {
+                                    "type": "string"
+                                  },
+                                  "onlineMeetingUrl": {},
+                                  "isOnlineMeeting": {
+                                    "type": "boolean"
+                                  },
+                                  "onlineMeetingProvider": {
+                                    "type": "string"
+                                  },
+                                  "allowNewTimeProposals": {
+                                    "type": "boolean"
+                                  },
+                                  "occurrenceId": {
+                                    "type": "string"
+                                  },
+                                  "isDraft": {
+                                    "type": "boolean"
+                                  },
+                                  "hideAttendees": {
+                                    "type": "boolean"
+                                  },
+                                  "responseStatus": {
+                                    "type": "object",
+                                    "properties": {
+                                      "response": {
+                                        "type": "string"
+                                      },
+                                      "time": {
+                                        "type": "string"
+                                      }
+                                    }
+                                  },
+                                  "body": {
+                                    "type": "object",
+                                    "properties": {
+                                      "contentType": {
+                                        "type": "string"
+                                      },
+                                      "content": {
+                                        "type": "string"
+                                      }
+                                    }
+                                  },
+                                  "start": {
+                                    "type": "object",
+                                    "properties": {
+                                      "dateTime": {
+                                        "type": "string"
+                                      },
+                                      "timeZone": {
+                                        "type": "string"
+                                      }
+                                    }
+                                  },
+                                  "end": {
+                                    "type": "object",
+                                    "properties": {
+                                      "dateTime": {
+                                        "type": "string"
+                                      },
+                                      "timeZone": {
+                                        "type": "string"
+                                      }
+                                    }
+                                  },
+                                  "location": {
+                                    "type": "object",
+                                    "properties": {
+                                      "displayName": {
+                                        "type": "string"
+                                      },
+                                      "locationType": {
+                                        "type": "string"
+                                      },
+                                      "uniqueIdType": {
+                                        "type": "string"
+                                      },
+                                      "address": {
+                                        "type": "object",
+                                        "properties": {}
+                                      },
+                                      "coordinates": {
+                                        "type": "object",
+                                        "properties": {}
+                                      }
+                                    }
+                                  },
+                                  "locations": {
+                                    "type": "array"
+                                  },
+                                  "recurrence": {},
+                                  "attendees": {
+                                    "type": "array"
+                                  },
+                                  "organizer": {
+                                    "type": "object",
+                                    "properties": {
+                                      "emailAddress": {
+                                        "type": "object",
+                                        "properties": {
+                                          "name": {
+                                            "type": "string"
+                                          },
+                                          "address": {
+                                            "type": "string"
+                                          }
+                                        }
+                                      }
+                                    }
+                                  },
+                                  "onlineMeeting": {}
+                                },
+                                "required": []
+                              }
+                            },
+                            "@@odata.nextLink": {
+                              "type": "string"
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "Apply_to_each_5": {
+                      "foreach": "@body('Parse_JSON_3')?['value']",
+                      "actions": {
+                        "Condition_7": {
+                          "actions": {
+                            "Append_to_array_variable_8": {
+                              "runAfter": {},
+                              "metadata": {
+                                "operationMetadataId": "31195d0e-3bf4-4186-a87e-7573e2b9b9b9"
+                              },
+                              "type": "AppendToArrayVariable",
+                              "inputs": {
+                                "name": "ICSMeetingArray",
+                                "value": {
+                                  "startdate": "@{items('Apply_to_each_5')?['start']?['dateTime']}"
+                                }
+                              }
+                            }
+                          },
+                          "runAfter": {},
+                          "expression": {
+                            "greater": [
+                              "@items('Apply_to_each_5')?['start']?['dateTime']",
+                              "@utcNow()"
+                            ]
+                          },
+                          "metadata": {
+                            "operationMetadataId": "4f855c43-b5a7-4b63-ac51-0ef02c876000"
+                          },
+                          "type": "If"
+                        }
+                      },
+                      "runAfter": {
+                        "Parse_JSON_3": [
+                          "Succeeded"
+                        ]
+                      },
+                      "metadata": {
+                        "operationMetadataId": "0e2f8736-4342-463e-96b3-f0cc3c75a4a8"
+                      },
+                      "type": "Foreach"
+                    }
+                  },
+                  "runAfter": {
+                    "Append_to_array_variable_6": [
+                      "Succeeded"
+                    ]
+                  },
+                  "expression": {
+                    "equals": [
+                      "@items('Apply_to_each_4')?['subject']",
+                      "ICS Leadership Meeting"
+                    ]
+                  },
+                  "metadata": {
+                    "operationMetadataId": "06594277-4c6e-430d-8f69-0528a1f03f37"
+                  },
+                  "type": "If"
+                },
+                "Set_variable_6": {
+                  "runAfter": {
+                    "Set_variable_2": [
+                      "Succeeded"
+                    ]
+                  },
+                  "metadata": {
+                    "operationMetadataId": "af35e60a-402b-43d4-b5fc-e060fe6ad9cf"
+                  },
+                  "type": "SetVariable",
+                  "inputs": {
+                    "name": "startTime",
+                    "value": "@items('Apply_to_each_4')?['start']?['dateTime']"
+                  }
+                },
+                "Set_variable_7": {
+                  "runAfter": {
+                    "Set_variable_6": [
+                      "Succeeded"
+                    ]
+                  },
+                  "metadata": {
+                    "operationMetadataId": "695e4319-cb59-4e8c-9fc5-7e47390a5e2f"
+                  },
+                  "type": "SetVariable",
+                  "inputs": {
+                    "name": "endTime",
+                    "value": "@items('Apply_to_each_4')?['end']?['dateTime']"
+                  }
+                },
+                "Compose_8": {
+                  "runAfter": {
+                    "Compose_3": [
+                      "Succeeded"
+                    ]
+                  },
+                  "metadata": {
+                    "operationMetadataId": "1e7b4333-d4eb-40e2-a501-f181bf76e789"
+                  },
+                  "type": "Compose",
+                  "inputs": "@formatDateTime(variables('startTime'),'hh:mm tt')"
+                },
+                "Compose_9": {
+                  "runAfter": {
+                    "Compose_8": [
+                      "Succeeded"
+                    ]
+                  },
+                  "metadata": {
+                    "operationMetadataId": "42513092-e5da-4982-81fd-c44c6b25f942"
+                  },
+                  "type": "Compose",
+                  "inputs": "@formatDateTime(variables('endTime'),'hh:mm tt')"
+                },
+                "Compose_Choose_the_desired_day_of_week_number_2": {
+                  "runAfter": {
+                    "Compose_9": [
+                      "Succeeded"
+                    ]
+                  },
+                  "metadata": {
+                    "operationMetadataId": "b3f2f71d-2088-4c5d-ba02-d2be6add8b61"
+                  },
+                  "type": "Compose",
+                  "inputs": "@int(dayofweek(variables('startdate')))"
+                },
+                "Compose_Next_date_of_chosen_day_of_week__2": {
+                  "runAfter": {
+                    "Compose_Choose_the_desired_day_of_week_number_2": [
+                      "Succeeded"
+                    ]
+                  },
+                  "metadata": {
+                    "operationMetadataId": "e34b270e-5e58-4dd0-b4a9-a69f97935fc4"
+                  },
+                  "type": "Compose",
+                  "inputs": "@adddays(utcNow(), if(greater(sub(dayofweek(utcNow()), outputs('Compose_Choose_the_desired_day_of_week_number_2')),0), add(7, sub(outputs('Compose_Choose_the_desired_day_of_week_number_2'), dayofweek(utcNow()))), int(replace(string(sub(dayofweek(utcNow()), outputs('Compose_Choose_the_desired_day_of_week_number_2'))), '-', ''))), 'yyyy-MM-dd')"
+                },
+                "Compose_7": {
+                  "runAfter": {
+                    "Compose_Next_date_of_chosen_day_of_week__2": [
+                      "Succeeded"
+                    ]
+                  },
+                  "metadata": {
+                    "operationMetadataId": "2e3e2b1e-1dc6-41cf-9495-d7fc02145f31"
+                  },
+                  "type": "Compose",
+                  "inputs": "@formatDateTime(outputs('Compose_Next_date_of_chosen_day_of_week__2'), 'MM/dd/yyyy')"
+                },
+                "Set_variable_8": {
+                  "runAfter": {
+                    "Compose_7": [
+                      "Succeeded"
+                    ]
+                  },
+                  "metadata": {
+                    "operationMetadataId": "b230afe3-09a7-4865-8d5f-09839ad251e1"
+                  },
+                  "type": "SetVariable",
+                  "inputs": {
+                    "name": "nextmeetingdate",
+                    "value": "@{outputs('Compose_7')}"
+                  }
+                },
+                "Send_an_HTTP_request_V2_3": {
+                  "runAfter": {
+                    "Set_variable_8": [
+                      "Succeeded"
+                    ]
+                  },
+                  "metadata": {
+                    "operationMetadataId": "509db850-71f1-46e1-b25a-4f566fda5cf1"
+                  },
+                  "type": "OpenApiConnection",
+                  "inputs": {
+                    "host": {
+                      "connectionName": "shared_office365groups",
+                      "operationId": "HttpRequestV2",
+                      "apiId": "/providers/Microsoft.PowerApps/apis/shared_office365groups"
+                    },
+                    "parameters": {
+                      "Uri": "https://graph.microsoft.com/v1.0/groups/@{outputs('Get_a_team_2')?['body/id']}/events/@{items('Apply_to_each_4')?['id']}/instances?startDateTime=@{body('Parse_JSON_2')?['range']?['startDate']}&endDateTime=@{body('Parse_JSON_2')?['range']?['endDate']}",
+                      "Method": "GET",
+                      "ContentType": "application/json"
+                    },
+                    "authentication": "@parameters('$authentication')"
+                  }
+                },
+                "Parse_JSON_4": {
+                  "runAfter": {
+                    "Send_an_HTTP_request_V2_3": [
+                      "Succeeded"
+                    ]
+                  },
+                  "metadata": {
+                    "operationMetadataId": "009cf797-bacd-476d-a62b-e62fb565635c"
+                  },
+                  "type": "ParseJson",
+                  "inputs": {
+                    "content": "@body('Send_an_HTTP_request_V2_3')",
+                    "schema": {
+                      "type": "object",
+                      "properties": {
+                        "@@odata.context": {
+                          "type": "string"
+                        },
+                        "value": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "@@odata.etag": {
+                                "type": "string"
+                              },
+                              "id": {
+                                "type": "string"
+                              },
+                              "createdDateTime": {
+                                "type": "string"
+                              },
+                              "lastModifiedDateTime": {
+                                "type": "string"
+                              },
+                              "changeKey": {
+                                "type": "string"
+                              },
+                              "categories": {
+                                "type": "array"
+                              },
+                              "originalStartTimeZone": {
+                                "type": "string"
+                              },
+                              "originalEndTimeZone": {
+                                "type": "string"
+                              },
+                              "iCalUId": {
+                                "type": "string"
+                              },
+                              "reminderMinutesBeforeStart": {
+                                "type": "integer"
+                              },
+                              "isReminderOn": {
+                                "type": "boolean"
+                              },
+                              "hasAttachments": {
+                                "type": "boolean"
+                              },
+                              "subject": {
+                                "type": "string"
+                              },
+                              "bodyPreview": {
+                                "type": "string"
+                              },
+                              "importance": {
+                                "type": "string"
+                              },
+                              "sensitivity": {
+                                "type": "string"
+                              },
+                              "isAllDay": {
+                                "type": "boolean"
+                              },
+                              "isCancelled": {
+                                "type": "boolean"
+                              },
+                              "isOrganizer": {
+                                "type": "boolean"
+                              },
+                              "responseRequested": {
+                                "type": "boolean"
+                              },
+                              "seriesMasterId": {
+                                "type": "string"
+                              },
+                              "showAs": {
+                                "type": "string"
+                              },
+                              "type": {
+                                "type": "string"
+                              },
+                              "webLink": {
+                                "type": "string"
+                              },
+                              "onlineMeetingUrl": {},
+                              "isOnlineMeeting": {
+                                "type": "boolean"
+                              },
+                              "onlineMeetingProvider": {
+                                "type": "string"
+                              },
+                              "allowNewTimeProposals": {
+                                "type": "boolean"
+                              },
+                              "occurrenceId": {
+                                "type": "string"
+                              },
+                              "isDraft": {
+                                "type": "boolean"
+                              },
+                              "hideAttendees": {
+                                "type": "boolean"
+                              },
+                              "responseStatus": {
+                                "type": "object",
+                                "properties": {
+                                  "response": {
+                                    "type": "string"
+                                  },
+                                  "time": {
+                                    "type": "string"
+                                  }
+                                }
+                              },
+                              "body": {
+                                "type": "object",
+                                "properties": {
+                                  "contentType": {
+                                    "type": "string"
+                                  },
+                                  "content": {
+                                    "type": "string"
+                                  }
+                                }
+                              },
+                              "start": {
+                                "type": "object",
+                                "properties": {
+                                  "dateTime": {
+                                    "type": "string"
+                                  },
+                                  "timeZone": {
+                                    "type": "string"
+                                  }
+                                }
+                              },
+                              "end": {
+                                "type": "object",
+                                "properties": {
+                                  "dateTime": {
+                                    "type": "string"
+                                  },
+                                  "timeZone": {
+                                    "type": "string"
+                                  }
+                                }
+                              },
+                              "location": {
+                                "type": "object",
+                                "properties": {
+                                  "displayName": {
+                                    "type": "string"
+                                  },
+                                  "locationType": {
+                                    "type": "string"
+                                  },
+                                  "uniqueId": {
+                                    "type": "string"
+                                  },
+                                  "uniqueIdType": {
+                                    "type": "string"
+                                  }
+                                }
+                              },
+                              "locations": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "displayName": {
+                                      "type": "string"
+                                    },
+                                    "locationType": {
+                                      "type": "string"
+                                    },
+                                    "uniqueId": {
+                                      "type": "string"
+                                    },
+                                    "uniqueIdType": {
+                                      "type": "string"
+                                    }
+                                  },
+                                  "required": []
+                                }
+                              },
+                              "recurrence": {},
+                              "attendees": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "type": {
+                                      "type": "string"
+                                    },
+                                    "status": {
+                                      "type": "object",
+                                      "properties": {
+                                        "response": {
+                                          "type": "string"
+                                        },
+                                        "time": {
+                                          "type": "string"
+                                        }
+                                      }
+                                    },
+                                    "emailAddress": {
+                                      "type": "object",
+                                      "properties": {
+                                        "name": {
+                                          "type": "string"
+                                        },
+                                        "address": {
+                                          "type": "string"
+                                        }
+                                      }
+                                    }
+                                  },
+                                  "required": []
+                                }
+                              },
+                              "organizer": {
+                                "type": "object",
+                                "properties": {
+                                  "emailAddress": {
+                                    "type": "object",
+                                    "properties": {
+                                      "name": {
+                                        "type": "string"
+                                      },
+                                      "address": {
+                                        "type": "string"
+                                      }
+                                    }
+                                  }
+                                }
+                              },
+                              "onlineMeeting": {
+                                "type": "object",
+                                "properties": {
+                                  "joinUrl": {
+                                    "type": "string"
+                                  },
+                                  "conferenceId": {
+                                    "type": "string"
+                                  },
+                                  "tollNumber": {
+                                    "type": "string"
+                                  }
+                                }
+                              }
+                            },
+                            "required": []
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "Append_to_array_variable_6": {
+                  "runAfter": {
+                    "Parse_JSON_4": [
+                      "Succeeded"
+                    ]
+                  },
+                  "metadata": {
+                    "operationMetadataId": "31195d0e-3bf4-4186-a87e-7573e2b9b9b9"
+                  },
+                  "type": "AppendToArrayVariable",
+                  "inputs": {
+                    "name": "eventArray",
+                    "value": {
+                      "meetingsubject": "@{items('Apply_to_each_4')?['subject']}",
+                      "meetingstarts": "@{outputs('Compose_8')}",
+                      "meetingends": "@{outputs('Compose_9')}",
+                      "meetingrecurrence": "Occurs @{body('Parse_JSON_2')?['pattern']?['type']} every @{body('Parse_JSON_2')?['pattern']?['daysOfWeek']}",
+                      "nextrecmeeting": "@{variables('nextmeetingdate')}"
+                    }
+                  }
+                }
+              },
+              "runAfter": {
+                "Set_variable_3": [
+                  "Succeeded"
+                ]
+              },
+              "else": {
+                "actions": {
+                  "Condition_5": {
+                    "actions": {
+                      "Compose_10": {
+                        "runAfter": {},
+                        "metadata": {
+                          "operationMetadataId": "90ba7b79-9773-4cf7-8a25-a89e1ab851af"
+                        },
+                        "type": "Compose",
+                        "inputs": "@formatDateTime(variables('startdate'),'MM/dd/yyyy')"
+                      },
+                      "Append_to_array_variable_7": {
+                        "runAfter": {
+                          "Compose_11": [
+                            "Succeeded"
+                          ]
+                        },
+                        "metadata": {
+                          "operationMetadataId": "204b41ec-d624-42a7-9f4f-f61cffe07803"
+                        },
+                        "type": "AppendToArrayVariable",
+                        "inputs": {
+                          "name": "eventArray",
+                          "value": {
+                            "meetingsubject": "@{items('Apply_to_each_4')?['subject']}",
+                            "meetingstarts": "@{outputs('Compose_11')}",
+                            "meetingends": "@{items('Apply_to_each_4')?['end']?['dateTime']}",
+                            "nextrecmeeting": "@{outputs('Compose_10')}",
+                            "meetingrecurrence": "One time only"
+                          }
+                        }
+                      },
+                      "Compose_11": {
+                        "runAfter": {
+                          "Compose_10": [
+                            "Succeeded"
+                          ]
+                        },
+                        "metadata": {
+                          "operationMetadataId": "08c8064a-d663-44fe-aafc-1c9f6a757973"
+                        },
+                        "type": "Compose",
+                        "inputs": "@formatDateTime(variables('startdate'), 'hh:mm tt')"
+                      },
+                      "Condition_10": {
+                        "actions": {
+                          "Set_variable_9": {
+                            "runAfter": {},
+                            "metadata": {
+                              "operationMetadataId": "f7b63c06-73fb-446f-895e-7d19e2c4a0fa"
+                            },
+                            "type": "SetVariable",
+                            "inputs": {
+                              "name": "NextICSMeetingDate",
+                              "value": "@{outputs('Compose_10')} @ @{outputs('Compose_11')}"
+                            }
+                          }
+                        },
+                        "runAfter": {
+                          "Append_to_array_variable_7": [
+                            "Succeeded"
+                          ]
+                        },
+                        "expression": {
+                          "equals": [
+                            "@items('Apply_to_each_4')?['subject']",
+                            "ICS Leadership Meeting"
+                          ]
+                        },
+                        "metadata": {
+                          "operationMetadataId": "6225bc3e-2b9f-4e91-985d-742cbb473121"
+                        },
+                        "type": "If"
+                      }
+                    },
+                    "runAfter": {},
+                    "expression": {
+                      "greater": [
+                        "@variables('startdate')",
+                        "@utcNow()"
+                      ]
+                    },
+                    "metadata": {
+                      "operationMetadataId": "0fa2c92d-f5ff-4043-b6cd-4d3ccb610f0d"
+                    },
+                    "type": "If"
+                  }
+                }
+              },
+              "expression": {
+                "greater": [
+                  "@length(variables('recurrence'))",
+                  0
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "b4b194d9-2a3e-4bc8-bf45-eb22682f476b"
+              },
+              "type": "If"
+            },
+            "Set_variable": {
+              "runAfter": {},
+              "metadata": {
+                "operationMetadataId": "fb9eced0-6c95-4d1c-9201-b6a7aa347ffe"
+              },
+              "type": "SetVariable",
+              "inputs": {
+                "name": "recurrence",
+                "value": "@{items('Apply_to_each_4')?['recurrence']}"
+              }
+            },
+            "Set_variable_3": {
+              "runAfter": {
+                "Set_variable": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "0c426c1d-d8f0-4735-96bf-3b80d90d976f"
+              },
+              "type": "SetVariable",
+              "inputs": {
+                "name": "startdate",
+                "value": "@items('Apply_to_each_4')?['start']?['dateTime']"
+              }
+            }
+          },
+          "runAfter": {
+            "Initialize_variable_10": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "4b95375f-98f1-44c1-9336-c43ea6a0051e"
+          },
+          "type": "Foreach"
+        },
+        "Initialize_variable_2": {
+          "runAfter": {
+            "Parse_JSON": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "e77cc757-bfb9-4be0-b3c0-efa2de39d56d"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "recurrence",
+                "type": "string"
+              }
+            ]
+          }
+        },
+        "sort_by_event_array": {
+          "runAfter": {
+            "Apply_to_each_4": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "f73634b4-671a-4d29-9ba7-27f8e5897719"
+          },
+          "type": "Compose",
+          "inputs": "@sort(variables('eventArray'), 'nextrecmeeting')"
+        },
+        "Initialize_variable_3": {
+          "runAfter": {
+            "Initialize_variable_2": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "2ced6b58-45f0-4a0b-a5b1-653589489de8"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "startdate",
+                "type": "string"
+              }
+            ]
+          }
+        },
+        "Initialize_variable_4": {
+          "runAfter": {
+            "Initialize_variable_3": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "57a406e0-8923-4070-9471-2e0db453b177"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "nextmeetingdate",
+                "type": "string"
+              }
+            ]
+          }
+        },
+        "Initialize_variable_5": {
+          "runAfter": {
+            "Initialize_variable_4": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "4ec7ed6a-3bcd-46e6-a295-361aa6c6b6a6"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "ICSMeetingArray",
+                "type": "array"
+              }
+            ]
+          }
+        },
+        "Set_variable_5": {
+          "runAfter": {
+            "Compose_4": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "ee090097-3479-4464-a8f2-33338de34f9b"
+          },
+          "type": "SetVariable",
+          "inputs": {
+            "name": "nextmeetingdate",
+            "value": "@{outputs('Compose_4')}"
+          }
+        },
+        "Filter_array": {
+          "runAfter": {
+            "sort_by_event_array": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "a7d14a20-6cec-4ee9-9634-fbd49ecedadf"
+          },
+          "type": "Query",
+          "inputs": {
+            "from": "@variables('ICSMeetingArray')",
+            "where": "@greater('startdate', utcnow())"
+          }
+        },
+        "Compose_4": {
+          "runAfter": {
+            "Filter_array": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "96069655-31df-442e-b9a1-aff2ff4d7e33"
+          },
+          "type": "Compose",
+          "inputs": "@body('Filter_array')?[0]"
+        },
+        "Initialize_variable_6": {
+          "runAfter": {
+            "Initialize_variable_5": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "81dd3b65-6064-484b-8cec-f8ac7cca80c8"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "startTime",
+                "type": "string"
+              }
+            ]
+          }
+        },
+        "Initialize_variable_7": {
+          "runAfter": {
+            "Initialize_variable_6": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "7c2e852d-5c8f-402d-a769-0fb50c7d919b"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "endTime",
+                "type": "string"
+              }
+            ]
+          }
+        },
+        "Initialize_variable_8": {
+          "runAfter": {
+            "Initialize_variable_7": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "94e9abc3-0d21-4e76-916b-6853d746912f"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "nextMeetingArray",
+                "type": "array"
+              }
+            ]
+          }
+        },
+        "Initialize_variable_9": {
+          "runAfter": {
+            "Initialize_variable_IncidentDirectoryName": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "67c546f2-e623-47e1-a928-fc8e715416a5"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "nextrecMeeting",
+                "type": "string"
+              }
+            ]
+          }
+        },
+        "Scope_Failure_Notifications": {
+          "actions": {
+            "Compose_Flow_run_link": {
+              "runAfter": {},
+              "metadata": {
+                "operationMetadataId": "304e2c8e-c6d8-4bd0-ac4d-57951dd57763"
+              },
+              "type": "Compose",
+              "inputs": "@concat('https://us.flow.microsoft.com/manage/environments/', workflow()?['tags']?['environmentName'], '/flows/', workflow()?['name'], '/runs/', workflow()?['run']['name'])"
+            },
+            "Send_an_email_(V2)_Failure_notification": {
+              "runAfter": {
+                "Compose_Flow_run_link": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "bd4b39c2-3462-4a00-b21d-d8ac056f00d2"
+              },
+              "type": "OpenApiConnection",
+              "inputs": {
+                "host": {
+                  "connectionName": "shared_office365_1",
+                  "operationId": "SendEmailV2",
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_office365"
+                },
+                "parameters": {
+                  "emailMessage/To": "@parameters('FailureNotificationEmail (new_FailureNotificationEmail)')",
+                  "emailMessage/Subject": "Your @{workflow()?['tags']?['flowDisplayName']} flow failed",
+                  "emailMessage/Body": "<p>Check your flow.<br>\n<br>\n<a href=\"@{outputs('Compose_Flow_run_link')}\">Flow Run Link</a>&nbsp;</p>"
+                },
+                "authentication": "@parameters('$authentication')"
+              }
+            },
+            "Terminate_Mark_flow_run_failure": {
+              "runAfter": {
+                "Send_an_email_(V2)_Failure_notification": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "c3050a38-c258-4145-b3fa-4d5e80d70b67"
+              },
+              "type": "Terminate",
+              "inputs": {
+                "runStatus": "Failed"
+              }
+            }
+          },
+          "runAfter": {
+            "Condition_48": [
+              "Failed",
+              "Skipped"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "072e1b99-2b98-4cdc-bb50-f9ef10d9a137"
+          },
+          "type": "Scope",
+          "description": "Set this Scope's Configure run after settings to \"has failed\", \"is skipped\", and \"has timed out\"."
+        },
+        "Condition_8": {
+          "actions": {
+            "Compose_5": {
+              "runAfter": {},
+              "metadata": {
+                "operationMetadataId": "95bb76cb-cec1-43e4-8b93-1dd70b56edbd"
+              },
+              "type": "Compose",
+              "inputs": "@formatDateTime(substring(variables('nextmeetingdate'), add(indexOf(variables('nextmeetingdate'), 'startdate'), 12), 10), 'MM-dd-yyyy @ hh:mm')"
+            },
+            "Set_variable_10": {
+              "runAfter": {
+                "Compose_5": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "b6ee214f-b275-4c1e-8685-49532fc79c77"
+              },
+              "type": "SetVariable",
+              "inputs": {
+                "name": "NextICSMeetingDate",
+                "value": "@{outputs('Compose_5')}"
+              }
+            }
+          },
+          "runAfter": {
+            "Set_variable_5": [
+              "Succeeded"
+            ]
+          },
+          "expression": {
+            "greater": [
+              "@length(variables('nextmeetingdate'))",
+              0
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "a3262b94-a17f-476f-9e15-9be685dfef22"
+          },
+          "type": "If"
+        },
+        "Initialize_variable_10": {
+          "runAfter": {
+            "Initialize_variable_8": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "a5b2efa6-ae88-4429-8b07-9a7409d9437a"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "NextICSMeetingDate",
+                "type": "string"
+              }
+            ]
+          }
+        }
+      },
+      "outputs": {}
+    },
+    "templateName": ""
+  },
+  "schemaVersion": "1.0.0.0"
+}

@@ -1,0 +1,11 @@
+<environmentvariabledefinition schemaname="democop_EnvironmentID">
+  <defaultvalue>4889dca5-dee5-ee7b-b377-61e1002e011b</defaultvalue>
+  <displayname default="VTEOC-EnvironmentID">
+    <label description="VTEOC-EnvironmentID" languagecode="1033" />
+  </displayname>
+  <introducedversion>1.2.0.12</introducedversion>
+  <iscustomizable>0</iscustomizable>
+  <isrequired>0</isrequired>
+  <secretstore>0</secretstore>
+  <type>100000000</type>
+</environmentvariabledefinition>

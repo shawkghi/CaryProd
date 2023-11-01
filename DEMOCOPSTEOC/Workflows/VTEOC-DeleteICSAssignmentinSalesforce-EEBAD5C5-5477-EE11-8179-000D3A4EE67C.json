@@ -1,0 +1,323 @@
+{
+  "properties": {
+    "connectionReferences": {
+      "shared_salesforce": {
+        "runtimeSource": "invoker",
+        "connection": {
+          "connectionReferenceLogicalName": "democop_sharedsalesforce_24f81"
+        },
+        "api": {
+          "name": "shared_salesforce"
+        }
+      }
+    },
+    "definition": {
+      "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+      "contentVersion": "1.0.0.0",
+      "parameters": {
+        "$connections": {
+          "defaultValue": {},
+          "type": "Object"
+        },
+        "$authentication": {
+          "defaultValue": {},
+          "type": "SecureObject"
+        }
+      },
+      "triggers": {
+        "manual": {
+          "metadata": {
+            "operationMetadataId": "fa8956d4-5fb7-4f2c-8e2e-4ce4d76689ea"
+          },
+          "type": "Request",
+          "kind": "PowerAppV2",
+          "inputs": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "text": {
+                  "title": "SalesforceUserEmail",
+                  "type": "string",
+                  "x-ms-dynamically-added": true,
+                  "description": "Please enter your input",
+                  "x-ms-content-hint": "TEXT"
+                },
+                "text_1": {
+                  "title": "IncidentName",
+                  "type": "string",
+                  "x-ms-dynamically-added": true,
+                  "description": "Please enter your input",
+                  "x-ms-content-hint": "TEXT"
+                },
+                "text_2": {
+                  "title": "ICSAssignment",
+                  "type": "string",
+                  "x-ms-dynamically-added": true,
+                  "description": "Please enter your input",
+                  "x-ms-content-hint": "TEXT"
+                }
+              },
+              "required": [
+                "text",
+                "text_1",
+                "text_2"
+              ]
+            }
+          }
+        }
+      },
+      "actions": {
+        "Get_records": {
+          "runAfter": {},
+          "metadata": {
+            "operationMetadataId": "b79f7562-af49-48f8-8c7c-2b2974d56f07"
+          },
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_salesforce",
+              "operationId": "GetItems",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_salesforce"
+            },
+            "parameters": {
+              "table": "User",
+              "$filter": "Username eq '@{triggerBody()['text']}'"
+            },
+            "authentication": "@parameters('$authentication')"
+          }
+        },
+        "Get_records_2": {
+          "runAfter": {
+            "Apply_to_each": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "6c09c21f-e0d8-4d6f-a2c3-01d140b4db9c"
+          },
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_salesforce",
+              "operationId": "GetItems",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_salesforce"
+            },
+            "parameters": {
+              "table": "Incident",
+              "$filter": "Subject eq '@{triggerBody()['text_1']}' "
+            },
+            "authentication": "@parameters('$authentication')"
+          }
+        },
+        "Initialize_variable": {
+          "runAfter": {
+            "Get_records": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "db96c5f4-bc8f-4d19-bd1e-e2e67f229d81"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "SalesforceUserID",
+                "type": "string"
+              }
+            ]
+          }
+        },
+        "Apply_to_each": {
+          "foreach": "@outputs('Get_records')?['body/value']",
+          "actions": {
+            "Set_variable": {
+              "runAfter": {},
+              "metadata": {
+                "operationMetadataId": "a4e355b2-6fd2-4f07-9a71-eb1de39fd70f"
+              },
+              "type": "SetVariable",
+              "inputs": {
+                "name": "SalesforceUserID",
+                "value": "@items('Apply_to_each')?['Id']"
+              }
+            }
+          },
+          "runAfter": {
+            "Initialize_variable": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "4d146e45-42c4-4c39-a2d6-1f725ae33d00"
+          },
+          "type": "Foreach"
+        },
+        "Initialize_variable_2": {
+          "runAfter": {
+            "Get_records_2": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "20a490d6-901d-47b1-a436-7707a9207cc8"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "incidentID",
+                "type": "string"
+              }
+            ]
+          }
+        },
+        "Apply_to_each_2": {
+          "foreach": "@outputs('Get_records_2')?['body/value']",
+          "actions": {
+            "Set_variable_2": {
+              "runAfter": {},
+              "metadata": {
+                "operationMetadataId": "6e90c67d-69c5-4438-ae56-2fe3b467ee77"
+              },
+              "type": "SetVariable",
+              "inputs": {
+                "name": "incidentID",
+                "value": "@items('Apply_to_each_2')?['Id']"
+              }
+            }
+          },
+          "runAfter": {
+            "Initialize_variable_2": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "36133da7-f773-475e-881c-fe9738da831e"
+          },
+          "type": "Foreach"
+        },
+        "Respond_to_a_PowerApp_or_flow": {
+          "runAfter": {
+            "Apply_to_each_3": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "f3bd0e81-5f57-4e96-86c3-e0b708aaf47e"
+          },
+          "type": "Response",
+          "kind": "PowerApp",
+          "inputs": {
+            "statusCode": 200,
+            "body": {
+              "added": "true"
+            },
+            "schema": {
+              "type": "object",
+              "properties": {
+                "added": {
+                  "title": "added",
+                  "x-ms-dynamically-added": true,
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "Get_records_3": {
+          "runAfter": {
+            "Apply_to_each_2": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "66c8e61d-a74d-45cf-9f48-2c831390f016"
+          },
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_salesforce",
+              "operationId": "GetItems",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_salesforce"
+            },
+            "parameters": {
+              "table": "ICS_Assignment__c",
+              "$filter": "Incident__c eq '@{variables('incidentID')}' and User__c eq '@{variables('SalesforceUserID')}' and ICS_Position__c eq '@{triggerBody()['text_2']}'"
+            },
+            "authentication": "@parameters('$authentication')"
+          }
+        },
+        "Initialize_variable_3": {
+          "runAfter": {
+            "Get_records_3": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "5709a935-a12c-44a4-99e9-7b95ee1f6020"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "icsID",
+                "type": "string"
+              }
+            ]
+          }
+        },
+        "Apply_to_each_3": {
+          "foreach": "@outputs('Get_records_3')?['body/value']",
+          "actions": {
+            "Set_variable_3": {
+              "runAfter": {},
+              "metadata": {
+                "operationMetadataId": "8cfc0f81-6a9f-42f1-996f-db53cc8b3e92"
+              },
+              "type": "SetVariable",
+              "inputs": {
+                "name": "icsID",
+                "value": "@items('Apply_to_each_3')?['Id']"
+              }
+            },
+            "Delete_record": {
+              "runAfter": {
+                "Set_variable_3": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "1024322c-2455-44e2-8cdd-4e0f473cca10"
+              },
+              "type": "OpenApiConnection",
+              "inputs": {
+                "host": {
+                  "connectionName": "shared_salesforce",
+                  "operationId": "DeleteItem",
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_salesforce"
+                },
+                "parameters": {
+                  "table": "ICS_Assignment__c",
+                  "id": "@variables('icsID')"
+                },
+                "authentication": "@parameters('$authentication')"
+              }
+            }
+          },
+          "runAfter": {
+            "Initialize_variable_3": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "97e1b32c-a8e7-4b90-a933-c203d4aa30ec"
+          },
+          "type": "Foreach"
+        }
+      }
+    },
+    "templateName": ""
+  },
+  "schemaVersion": "1.0.0.0"
+}

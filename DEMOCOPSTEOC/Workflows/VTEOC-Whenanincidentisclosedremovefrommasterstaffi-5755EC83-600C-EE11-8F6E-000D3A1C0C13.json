@@ -1,0 +1,539 @@
+{
+  "properties": {
+    "connectionReferences": {
+      "shared_sharepointonline_1": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "new_sharedsharepointonline_1a1dc"
+        },
+        "api": {
+          "name": "shared_sharepointonline"
+        }
+      },
+      "shared_office365_1": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "new_sharedoffice365_23120"
+        },
+        "api": {
+          "name": "shared_office365"
+        }
+      }
+    },
+    "definition": {
+      "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+      "contentVersion": "1.0.0.0",
+      "parameters": {
+        "$connections": {
+          "defaultValue": {},
+          "type": "Object"
+        },
+        "$authentication": {
+          "defaultValue": {},
+          "type": "SecureObject"
+        },
+        "FailureNotificationEmail (new_FailureNotificationEmail)": {
+          "defaultValue": "shawk@devgh.onmicrosoft.com",
+          "type": "String",
+          "metadata": {
+            "schemaName": "new_FailureNotificationEmail"
+          }
+        },
+        "TEOC-DEMO-MasterStaffingList (new_TEOCDEMOMasterStaffingList)": {
+          "defaultValue": "1134ea9d-3271-4ea5-b8f3-617db902133e",
+          "type": "String",
+          "metadata": {
+            "schemaName": "new_TEOCDEMOMasterStaffingList"
+          }
+        },
+        "TEOC-MasterStaffingList (new_TEOCMasterStaffingList)": {
+          "defaultValue": "31f350e9-64ad-4f68-8fab-53714d001d58",
+          "type": "String",
+          "metadata": {
+            "schemaName": "new_TEOCMasterStaffingList"
+          }
+        },
+        "TEOC-DEMO-SharepointSite (new_TEOCDEMOSharepointSite)": {
+          "defaultValue": "https://devgh.sharepoint.com/sites/TEOCDemo",
+          "type": "String",
+          "metadata": {
+            "schemaName": "new_TEOCDEMOSharepointSite"
+          }
+        },
+        "TEOC-DEMO-IncidentTransactionList (new_TEOCDEMOIncidentTransactionList)": {
+          "defaultValue": "5cab7468-d22e-46a8-80bb-8ea11f2505a5",
+          "type": "String",
+          "metadata": {
+            "schemaName": "new_TEOCDEMOIncidentTransactionList"
+          }
+        }
+      },
+      "triggers": {
+        "When_an_item_is_created_or_modified": {
+          "recurrence": {
+            "interval": 1,
+            "frequency": "Minute"
+          },
+          "splitOn": "@triggerOutputs()?['body/value']",
+          "metadata": {
+            "operationMetadataId": "f231f601-8f7a-4f21-8dc4-0142b6669d58"
+          },
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_sharepointonline_1",
+              "operationId": "GetOnUpdatedItems",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline"
+            },
+            "parameters": {
+              "dataset": "@parameters('TEOC-DEMO-SharepointSite (new_TEOCDEMOSharepointSite)')",
+              "table": "@parameters('TEOC-DEMO-IncidentTransactionList (new_TEOCDEMOIncidentTransactionList)')"
+            },
+            "authentication": "@parameters('$authentication')"
+          }
+        }
+      },
+      "actions": {
+        "Get_items": {
+          "runAfter": {
+            "Initialize_variable": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "b6bb59de-bd8a-4985-9e3a-8e6653fc78d7"
+          },
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_sharepointonline_1",
+              "operationId": "GetItems",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline"
+            },
+            "parameters": {
+              "dataset": "@parameters('TEOC-DEMO-SharepointSite (new_TEOCDEMOSharepointSite)')",
+              "table": "@parameters('TEOC-DEMO-IncidentTransactionList (new_TEOCDEMOIncidentTransactionList)')"
+            },
+            "authentication": "@parameters('$authentication')"
+          },
+          "runtimeConfiguration": {
+            "paginationPolicy": {
+              "minimumItemCount": 5000
+            }
+          }
+        },
+        "Scope_Failure_Notifications": {
+          "actions": {
+            "Compose_Flow_run_link": {
+              "runAfter": {},
+              "metadata": {
+                "operationMetadataId": "304e2c8e-c6d8-4bd0-ac4d-57951dd57763"
+              },
+              "type": "Compose",
+              "inputs": "@concat('https://us.flow.microsoft.com/manage/environments/', workflow()?['tags']?['environmentName'], '/flows/', workflow()?['name'], '/runs/', workflow()?['run']['name'])"
+            },
+            "Send_an_email_(V2)_Failure_notification": {
+              "runAfter": {
+                "Compose_Flow_run_link": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "bd4b39c2-3462-4a00-b21d-d8ac056f00d2"
+              },
+              "type": "OpenApiConnection",
+              "inputs": {
+                "host": {
+                  "connectionName": "shared_office365_1",
+                  "operationId": "SendEmailV2",
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_office365"
+                },
+                "parameters": {
+                  "emailMessage/To": "@parameters('FailureNotificationEmail (new_FailureNotificationEmail)')",
+                  "emailMessage/Subject": "Your @{workflow()?['tags']?['flowDisplayName']} flow failed",
+                  "emailMessage/Body": "<p>Check your flow.<br>\n<br>\n<a href=\"@{outputs('Compose_Flow_run_link')}\">Flow Run Link</a>&nbsp;</p>"
+                },
+                "authentication": "@parameters('$authentication')"
+              }
+            },
+            "Terminate_Mark_flow_run_failure": {
+              "runAfter": {
+                "Send_an_email_(V2)_Failure_notification": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "c3050a38-c258-4145-b3fa-4d5e80d70b67"
+              },
+              "type": "Terminate",
+              "inputs": {
+                "runStatus": "Failed"
+              }
+            }
+          },
+          "runAfter": {
+            "Run_a_Child_Flow_-_Check_if_there_are_any_active_incidents": [
+              "Failed",
+              "Skipped"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "072e1b99-2b98-4cdc-bb50-f9ef10d9a137"
+          },
+          "type": "Scope",
+          "description": "Set this Scope's Configure run after settings to \"has failed\", \"is skipped\", and \"has timed out\"."
+        },
+        "Initialize_variable": {
+          "runAfter": {},
+          "metadata": {
+            "operationMetadataId": "ae723730-bbca-4f45-9da0-0c48c0e948bd"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "incidentArray",
+                "type": "array"
+              }
+            ]
+          }
+        },
+        "Filter_array": {
+          "runAfter": {
+            "Get_items": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "247afab5-acb8-4c5a-b7dd-3b71aac5092f"
+          },
+          "type": "Query",
+          "inputs": {
+            "from": "@outputs('Get_items')?['body/value']",
+            "where": "@equals(item()?['Status/Value'], 'Closed')"
+          }
+        },
+        "Parse_JSON": {
+          "runAfter": {
+            "Filter_array": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "51de1ec0-4041-4c94-b85b-0ad08360b946"
+          },
+          "type": "ParseJson",
+          "inputs": {
+            "content": "@body('Filter_array')",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "@@odata.etag": {
+                    "type": "string"
+                  },
+                  "ItemInternalId": {
+                    "type": "string"
+                  },
+                  "ID": {
+                    "type": "integer"
+                  },
+                  "Title": {
+                    "type": "string"
+                  },
+                  "Description": {
+                    "type": "string"
+                  },
+                  "IncidentName": {
+                    "type": "string"
+                  },
+                  "IncidentType": {
+                    "type": "string"
+                  },
+                  "IncidentStatus": {
+                    "type": "string"
+                  },
+                  "StartDateTime": {
+                    "type": "string"
+                  },
+                  "IncidentCommander": {
+                    "type": "string"
+                  },
+                  "TeamId": {
+                    "type": "string"
+                  },
+                  "Location": {
+                    "type": "string"
+                  },
+                  "RoleAssignment": {
+                    "type": "string"
+                  },
+                  "IncidentId": {
+                    "type": "string"
+                  },
+                  "Severity": {
+                    "type": "string"
+                  },
+                  "ReasonForUpdate": {
+                    "type": "string"
+                  },
+                  "Status": {
+                    "type": "object",
+                    "properties": {
+                      "@@odata.type": {
+                        "type": "string"
+                      },
+                      "Id": {
+                        "type": "integer"
+                      },
+                      "Value": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "Status#Id": {
+                    "type": "integer"
+                  },
+                  "Modified": {
+                    "type": "string"
+                  },
+                  "Created": {
+                    "type": "string"
+                  },
+                  "TeamWebURL": {
+                    "type": "string"
+                  },
+                  "Author": {
+                    "type": "object",
+                    "properties": {
+                      "@@odata.type": {
+                        "type": "string"
+                      },
+                      "Claims": {
+                        "type": "string"
+                      },
+                      "DisplayName": {
+                        "type": "string"
+                      },
+                      "Email": {
+                        "type": "string"
+                      },
+                      "Picture": {
+                        "type": "string"
+                      },
+                      "Department": {},
+                      "JobTitle": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "Author#Claims": {
+                    "type": "string"
+                  },
+                  "Editor": {
+                    "type": "object",
+                    "properties": {
+                      "@@odata.type": {
+                        "type": "string"
+                      },
+                      "Claims": {
+                        "type": "string"
+                      },
+                      "DisplayName": {
+                        "type": "string"
+                      },
+                      "Email": {
+                        "type": "string"
+                      },
+                      "Picture": {
+                        "type": "string"
+                      },
+                      "Department": {},
+                      "JobTitle": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "Editor#Claims": {
+                    "type": "string"
+                  },
+                  "{Identifier}": {
+                    "type": "string"
+                  },
+                  "{IsFolder}": {
+                    "type": "boolean"
+                  },
+                  "{Thumbnail}": {
+                    "type": "object",
+                    "properties": {
+                      "Large": {},
+                      "Medium": {},
+                      "Small": {}
+                    }
+                  },
+                  "{Link}": {
+                    "type": "string"
+                  },
+                  "{Name}": {
+                    "type": "string"
+                  },
+                  "{FilenameWithExtension}": {
+                    "type": "string"
+                  },
+                  "{Path}": {
+                    "type": "string"
+                  },
+                  "{FullPath}": {
+                    "type": "string"
+                  },
+                  "{HasAttachments}": {
+                    "type": "boolean"
+                  },
+                  "{VersionNumber}": {
+                    "type": "string"
+                  },
+                  "NewsTabLink": {
+                    "type": "string"
+                  },
+                  "PlanID": {
+                    "type": "string"
+                  },
+                  "RoleLeads": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@@odata.etag",
+                  "ItemInternalId",
+                  "ID",
+                  "Title",
+                  "Description",
+                  "IncidentName",
+                  "IncidentType",
+                  "StartDateTime",
+                  "IncidentCommander",
+                  "TeamId",
+                  "Location",
+                  "IncidentId",
+                  "Severity",
+                  "ReasonForUpdate",
+                  "Status",
+                  "Status#Id",
+                  "Modified",
+                  "Created",
+                  "TeamWebURL",
+                  "Author",
+                  "Author#Claims",
+                  "Editor",
+                  "Editor#Claims",
+                  "{Identifier}",
+                  "{IsFolder}",
+                  "{Thumbnail}",
+                  "{Link}",
+                  "{Name}",
+                  "{FilenameWithExtension}",
+                  "{Path}",
+                  "{FullPath}",
+                  "{HasAttachments}",
+                  "{VersionNumber}"
+                ]
+              }
+            }
+          }
+        },
+        "Apply_to_each": {
+          "foreach": "@body('Parse_JSON')",
+          "actions": {
+            "Get__Master_Staffing_List": {
+              "runAfter": {},
+              "metadata": {
+                "operationMetadataId": "7a129b00-31f9-4618-8c70-4a1d30189604"
+              },
+              "type": "OpenApiConnection",
+              "inputs": {
+                "host": {
+                  "connectionName": "shared_sharepointonline_1",
+                  "operationId": "GetItems",
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline"
+                },
+                "parameters": {
+                  "dataset": "@parameters('TEOC-DEMO-SharepointSite (new_TEOCDEMOSharepointSite)')",
+                  "table": "@parameters('TEOC-DEMO-MasterStaffingList (new_TEOCDEMOMasterStaffingList)')",
+                  "$filter": "Title eq '@{items('Apply_to_each')['TeamId']}'"
+                },
+                "authentication": "@parameters('$authentication')"
+              },
+              "runtimeConfiguration": {
+                "paginationPolicy": {
+                  "minimumItemCount": 5000
+                }
+              }
+            },
+            "Apply_to_each_2": {
+              "foreach": "@outputs('Get__Master_Staffing_List')?['body/value']",
+              "actions": {
+                "Delete_item": {
+                  "runAfter": {},
+                  "metadata": {
+                    "operationMetadataId": "286af004-7508-432c-b1e5-d58189cb913e"
+                  },
+                  "type": "OpenApiConnection",
+                  "inputs": {
+                    "host": {
+                      "connectionName": "shared_sharepointonline_1",
+                      "operationId": "DeleteItem",
+                      "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline"
+                    },
+                    "parameters": {
+                      "dataset": "@parameters('TEOC-DEMO-SharepointSite (new_TEOCDEMOSharepointSite)')",
+                      "table": "@parameters('TEOC-MasterStaffingList (new_TEOCMasterStaffingList)')",
+                      "id": "@items('Apply_to_each_2')?['ID']"
+                    },
+                    "authentication": "@parameters('$authentication')"
+                  }
+                }
+              },
+              "runAfter": {
+                "Get__Master_Staffing_List": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "2ef53f8a-ed2b-4284-a157-9048fbc3e82b"
+              },
+              "type": "Foreach"
+            }
+          },
+          "runAfter": {
+            "Parse_JSON": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "8b584376-4e26-4785-a4b4-16ec945f8e5b"
+          },
+          "type": "Foreach"
+        },
+        "Run_a_Child_Flow_-_Check_if_there_are_any_active_incidents": {
+          "runAfter": {
+            "Apply_to_each": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "6bf3a1eb-e0a5-477a-988b-658c763d86b9"
+          },
+          "type": "Workflow",
+          "inputs": {
+            "host": {
+              "workflowReferenceName": "7c0fc3af-600c-ee11-8f6e-000d3a1c0c13"
+            }
+          }
+        }
+      }
+    },
+    "templateName": ""
+  },
+  "schemaVersion": "1.0.0.0"
+}

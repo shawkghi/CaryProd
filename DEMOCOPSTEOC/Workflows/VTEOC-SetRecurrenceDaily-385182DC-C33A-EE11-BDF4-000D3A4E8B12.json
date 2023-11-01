@@ -1,0 +1,121 @@
+{
+  "properties": {
+    "connectionReferences": {
+      "shared_office365groups": {
+        "runtimeSource": "invoker",
+        "connection": {
+          "connectionReferenceLogicalName": "new_sharedoffice365groups_ff4f1"
+        },
+        "api": {
+          "name": "shared_office365groups"
+        }
+      }
+    },
+    "definition": {
+      "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+      "contentVersion": "1.0.0.0",
+      "parameters": {
+        "$connections": {
+          "defaultValue": {},
+          "type": "Object"
+        },
+        "$authentication": {
+          "defaultValue": {},
+          "type": "SecureObject"
+        }
+      },
+      "triggers": {
+        "manual": {
+          "metadata": {
+            "operationMetadataId": "65ee5adb-1956-4e3f-aaad-e95fa45c03a7"
+          },
+          "type": "Request",
+          "kind": "PowerApp",
+          "inputs": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "SendanHTTPrequestV2_URI": {
+                  "type": "string",
+                  "description": "The full or relative URI. Example: https://graph.microsoft.com/{version}/{resource}.. This parameter is used as part of \"C95C1977-C976-43EC-9D6D-750F04490A53\"",
+                  "x-ms-powerflows-param-ispartial": true
+                },
+                "SendanHTTPrequestV2_URI_1": {
+                  "type": "string"
+                },
+                "SendanHTTPrequestV2_Body": {
+                  "type": "string",
+                  "format": "binary",
+                  "description": "The request body content.. This parameter is used as part of \"72727187-E319-480F-AFA0-2D4FD9A94F4B\"",
+                  "x-ms-powerflows-param-ispartial": true
+                },
+                "SendanHTTPrequestV2_Body_1": {
+                  "type": "string"
+                },
+                "SendanHTTPrequestV2_Body_2": {
+                  "type": "string"
+                },
+                "SendanHTTPrequestV2_Body_3": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "SendanHTTPrequestV2_URI",
+                "SendanHTTPrequestV2_URI_1",
+                "SendanHTTPrequestV2_Body",
+                "SendanHTTPrequestV2_Body_1",
+                "SendanHTTPrequestV2_Body_2",
+                "SendanHTTPrequestV2_Body_3"
+              ]
+            }
+          }
+        }
+      },
+      "actions": {
+        "Send_an_HTTP_request_V2": {
+          "runAfter": {
+            "Delay": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "77150ab2-afb6-4be2-8703-03de3717c850"
+          },
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_office365groups",
+              "operationId": "HttpRequestV2",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_office365groups"
+            },
+            "parameters": {
+              "Uri": "https://graph.microsoft.com/v1.0/groups/@{triggerBody()['SendanHTTPrequestV2_URI']}/events/@{triggerBody()['SendanHTTPrequestV2_URI_1']}",
+              "Method": "PATCH",
+              "Body": "{\"recurrence\": {\n    \"pattern\": {\n      \"type\": \"daily\",\n      \"interval\": @{triggerBody()['SendanHTTPrequestV2_Body']}\n    },\n    \"range\": {\n      \"type\": \"endDate\",\n      \"startDate\": \"@{triggerBody()['SendanHTTPrequestV2_Body_2']}\",\n      \"endDate\": \"@{triggerBody()['SendanHTTPrequestV2_Body_3']}\",\n       \"recurrenceTimeZone\": \"Eastern Standard Time\",\n        \"numberOfOccurrences\": 0\n    }\n  }}",
+              "ContentType": "application/json"
+            },
+            "authentication": {
+              "type": "Raw",
+              "value": "@json(decodeBase64(triggerOutputs().headers['X-MS-APIM-Tokens']))['$ConnectionKey']"
+            }
+          }
+        },
+        "Delay": {
+          "runAfter": {},
+          "metadata": {
+            "operationMetadataId": "471bedc1-9597-4f63-b784-f5f384bf0a73"
+          },
+          "type": "Wait",
+          "inputs": {
+            "interval": {
+              "count": 10,
+              "unit": "Second"
+            }
+          }
+        }
+      }
+    },
+    "templateName": ""
+  },
+  "schemaVersion": "1.0.0.0"
+}

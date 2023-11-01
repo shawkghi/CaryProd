@@ -1,0 +1,166 @@
+{
+  "properties": {
+    "connectionReferences": {
+      "shared_office365groups": {
+        "runtimeSource": "invoker",
+        "connection": {
+          "connectionReferenceLogicalName": "new_sharedoffice365groups_ecfa3"
+        },
+        "api": {
+          "name": "shared_office365groups"
+        }
+      }
+    },
+    "definition": {
+      "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+      "contentVersion": "1.0.0.0",
+      "parameters": {
+        "$connections": {
+          "defaultValue": {},
+          "type": "Object"
+        },
+        "$authentication": {
+          "defaultValue": {},
+          "type": "SecureObject"
+        }
+      },
+      "triggers": {
+        "manual": {
+          "metadata": {
+            "operationMetadataId": "024cce38-15ba-4195-a4e0-9ea0afbd4539"
+          },
+          "type": "Request",
+          "kind": "PowerAppV2",
+          "inputs": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "text": {
+                  "title": "TeamID",
+                  "type": "string",
+                  "x-ms-dynamically-added": true,
+                  "description": "Please enter your input",
+                  "x-ms-content-hint": "TEXT"
+                },
+                "text_1": {
+                  "title": "GroupID",
+                  "type": "string",
+                  "x-ms-dynamically-added": true,
+                  "description": "Please enter your input",
+                  "x-ms-content-hint": "TEXT"
+                },
+                "text_2": {
+                  "title": "ChannelID",
+                  "type": "string",
+                  "x-ms-dynamically-added": true,
+                  "description": "Please enter your input",
+                  "x-ms-content-hint": "TEXT"
+                }
+              },
+              "required": [
+                "text",
+                "text_1",
+                "text_2"
+              ]
+            }
+          }
+        }
+      },
+      "actions": {
+        "List_group_members": {
+          "runAfter": {},
+          "metadata": {
+            "operationMetadataId": "69bbdcdd-5080-4b79-83c9-23f7558f447e"
+          },
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_office365groups",
+              "connectionName": "shared_office365groups",
+              "operationId": "ListGroupMembers"
+            },
+            "parameters": {
+              "groupId": "@triggerBody()['text_1']"
+            },
+            "authentication": {
+              "value": "@json(decodeBase64(triggerOutputs().headers['X-MS-APIM-Tokens']))['$ConnectionKey']",
+              "type": "Raw"
+            }
+          }
+        },
+        "Apply_to_each_2": {
+          "foreach": "@outputs('List_group_members')?['body/value']",
+          "actions": {
+            "HTTP": {
+              "runAfter": {},
+              "metadata": {
+                "operationMetadataId": "8104de72-2b42-44d5-8daf-3b46aa9101e1"
+              },
+              "type": "Http",
+              "inputs": {
+                "method": "POST",
+                "uri": " https://graph.microsoft.com/v1.0/teams/@{triggerBody()['text']}/channels/@{triggerBody()['text_2']}/members",
+                "headers": {
+                  "Content-type": "application/json"
+                },
+                "body": {
+                  "@@odata.type": "#microsoft.graph.aadUserConversationMember",
+                  "roles": [
+                    "owner"
+                  ],
+                  "user@odata.bind": "https://graph.microsoft.com/v1.0/users('@{items('Apply_to_each_2')?['id']}')"
+                },
+                "authentication": {
+                  "type": "ActiveDirectoryOAuth",
+                  "tenant": "06901596-5550-425c-abe0-3240ed6ec7ae",
+                  "audience": "https://graph.microsoft.com",
+                  "clientId": "e27ff4d6-1ecb-452c-ae74-f128a180cdf8",
+                  "secret": "m.z8Q~jMnIDIgehjHAodWKdYVMipDfmnhjp6oaA5"
+                }
+              }
+            }
+          },
+          "runAfter": {
+            "List_group_members": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "8db79df4-161b-4905-98ad-47024f50b31d"
+          },
+          "type": "Foreach"
+        },
+        "Respond_to_a_PowerApp_or_flow": {
+          "runAfter": {
+            "Apply_to_each_2": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "26086da1-e21f-42c3-990f-1e84305c62b4"
+          },
+          "type": "Response",
+          "kind": "PowerApp",
+          "inputs": {
+            "statusCode": 200,
+            "body": {
+              "success": "Added group to private team! "
+            },
+            "schema": {
+              "type": "object",
+              "properties": {
+                "success": {
+                  "title": "Success",
+                  "x-ms-dynamically-added": true,
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "templateName": null
+  },
+  "schemaVersion": "1.0.0.0"
+}

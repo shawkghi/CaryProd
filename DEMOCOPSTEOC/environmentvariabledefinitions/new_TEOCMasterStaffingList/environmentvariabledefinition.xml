@@ -1,0 +1,15 @@
+<environmentvariabledefinition schemaname="new_TEOCMasterStaffingList">
+  <apiid>/providers/microsoft.powerapps/apis/shared_sharepointonline</apiid>
+  <displayname default="VTEOC-StaffingList">
+    <label description="VTEOC-StaffingList" languagecode="1033" />
+  </displayname>
+  <introducedversion>1.1.0.8</introducedversion>
+  <iscustomizable>1</iscustomizable>
+  <isrequired>0</isrequired>
+  <parameterkey>table</parameterkey>
+  <parentdefinitionid>
+    <schemaname>new_TEOCSharepointSite</schemaname>
+  </parentdefinitionid>
+  <secretstore>0</secretstore>
+  <type>100000004</type>
+</environmentvariabledefinition>

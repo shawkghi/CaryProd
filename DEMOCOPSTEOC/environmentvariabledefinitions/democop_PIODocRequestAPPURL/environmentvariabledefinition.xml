@@ -1,0 +1,11 @@
+<environmentvariabledefinition schemaname="democop_PIODocRequestAPPURL">
+  <defaultvalue>https://apps.powerapps.com/play/e/4889dca5-dee5-ee7b-b377-61e1002e011b/a/c8b53a88-43c0-430f-a8f1-32a845a3e38f?tenantId=06901596-5550-425c-abe0-3240ed6ec7ae&amp;source=portal</defaultvalue>
+  <displayname default="VTEOC-PIODocRequestAPPURL">
+    <label description="VTEOC-PIODocRequestAPPURL" languagecode="1033" />
+  </displayname>
+  <introducedversion>1.2.0.12</introducedversion>
+  <iscustomizable>1</iscustomizable>
+  <isrequired>0</isrequired>
+  <secretstore>0</secretstore>
+  <type>100000000</type>
+</environmentvariabledefinition>

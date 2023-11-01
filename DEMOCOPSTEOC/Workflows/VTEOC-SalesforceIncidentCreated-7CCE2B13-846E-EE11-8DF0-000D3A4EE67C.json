@@ -1,0 +1,774 @@
+{
+  "properties": {
+    "connectionReferences": {
+      "shared_commondataserviceforapps": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "democop_sharedcommondataserviceforapps_70956"
+        },
+        "api": {
+          "name": "shared_commondataserviceforapps"
+        }
+      },
+      "shared_teams": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "new_sharedteams_8c820"
+        },
+        "api": {
+          "name": "shared_teams"
+        }
+      },
+      "shared_salesforce_2": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "democop_sharedsalesforce_87969"
+        },
+        "api": {
+          "name": "shared_salesforce"
+        }
+      },
+      "shared_azuread": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "democop_sharedazuread_86384"
+        },
+        "api": {
+          "name": "shared_azuread"
+        }
+      },
+      "shared_slack": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "new_sharedslack_f7e32"
+        },
+        "api": {
+          "name": "shared_slack"
+        }
+      },
+      "shared_salesforce_1": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "democop_sharedsalesforce_24f81"
+        },
+        "api": {
+          "name": "shared_salesforce"
+        }
+      }
+    },
+    "definition": {
+      "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+      "contentVersion": "1.0.0.0",
+      "parameters": {
+        "$connections": {
+          "defaultValue": {},
+          "type": "Object"
+        },
+        "$authentication": {
+          "defaultValue": {},
+          "type": "SecureObject"
+        }
+      },
+      "triggers": {
+        "When_a_record_is_created": {
+          "recurrence": {
+            "interval": 1,
+            "frequency": "Minute"
+          },
+          "splitOn": "@triggerOutputs()?['body/value']",
+          "metadata": {
+            "operationMetadataId": "9145460f-edaf-4ce4-9d7a-9a01dac68d2e"
+          },
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_salesforce_1",
+              "operationId": "GetOnNewItems",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_salesforce"
+            },
+            "parameters": {
+              "table": "Incident"
+            },
+            "authentication": "@parameters('$authentication')"
+          }
+        }
+      },
+      "actions": {
+        "Add_a_new_row": {
+          "runAfter": {
+            "Get_a_team": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "990472df-9cca-4d47-bced-b4af6c7f6513"
+          },
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_commondataserviceforapps",
+              "operationId": "CreateRecord",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
+            },
+            "parameters": {
+              "entityName": "crb97_teocincidenttransaction_3s",
+              "item/crb97_created": "@triggerOutputs()?['body/CreatedDate']",
+              "item/crb97_createdby": "@body('Parse_JSON')?['Email']",
+              "item/crb97_description": "@triggerOutputs()?['body/Description']",
+              "item/crb97_id": "@triggerOutputs()?['body/Id']",
+              "item/crb97_incidentcommander": "@outputs('Get_user')?['body/id']",
+              "item/democop_incidentid": "@triggerOutputs()?['body/Id']",
+              "item/crb97_incidentname": "@triggerOutputs()?['body/Subject']",
+              "item/crb97_incidentstatus": "@triggerOutputs()?['body/Status']",
+              "item/crb97_incidenttype": "@triggerOutputs()?['body/Type']",
+              "item/crd69_slackchannelid": "@outputs('Create_a_channel')?['body/channel/id']",
+              "item/crd69_slackchannelname": "@outputs('Create_a_channel')?['body/channel/name']",
+              "item/crb97_status": "@triggerOutputs()?['body/Status']",
+              "item/crb97_teamid": "@outputs('Get_a_team')?['body/id']",
+              "item/crb97_teamweburl": "@outputs('Get_a_team')?['body/webUrl']",
+              "item/crb97_title": "@triggerOutputs()?['body/Subject']"
+            },
+            "authentication": "@parameters('$authentication')"
+          }
+        },
+        "Create_a_team": {
+          "runAfter": {
+            "Get_user": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "0e8c954c-56e7-4d06-9dde-1c09fc7e7b13"
+          },
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_teams",
+              "operationId": "CreateATeam",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_teams"
+            },
+            "parameters": {
+              "body/displayName": "@triggerOutputs()?['body/Subject']",
+              "body/description": "@triggerOutputs()?['body/Description']",
+              "body/visibility": "Public"
+            },
+            "authentication": "@parameters('$authentication')"
+          }
+        },
+        "Get_a_team": {
+          "runAfter": {
+            "Create_a_channel": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "57225c68-5e52-48d8-b166-680017c3cbea"
+          },
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_teams",
+              "operationId": "GetTeam",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_teams"
+            },
+            "parameters": {
+              "teamId": "@outputs('Create_a_team')?['body/newTeamId']"
+            },
+            "authentication": "@parameters('$authentication')"
+          }
+        },
+        "Send_an_HTTP_request": {
+          "runAfter": {},
+          "metadata": {
+            "operationMetadataId": "5e5a4e16-9965-4c91-8b2b-07542449e046"
+          },
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_salesforce_2",
+              "operationId": "HttpRequest",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_salesforce"
+            },
+            "parameters": {
+              "Uri": "https://test.salesforce.com/services/data/v46.0/sobjects/User/@{triggerOutputs()?['body/OwnerId']}",
+              "Method": "GET",
+              "ContentType": "application/json"
+            },
+            "authentication": "@parameters('$authentication')"
+          }
+        },
+        "Parse_JSON": {
+          "runAfter": {
+            "Send_an_HTTP_request": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "6db448b6-dcf9-4fd4-963c-ee689a4836f0"
+          },
+          "type": "ParseJson",
+          "inputs": {
+            "content": "@body('Send_an_HTTP_request')",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "attributes": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": "string"
+                    },
+                    "url": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "Id": {
+                  "type": "string"
+                },
+                "Username": {
+                  "type": "string"
+                },
+                "LastName": {
+                  "type": "string"
+                },
+                "FirstName": {
+                  "type": "string"
+                },
+                "Name": {
+                  "type": "string"
+                },
+                "Title": {
+                  "type": "string"
+                },
+                "Country": {
+                  "type": "string"
+                },
+                "CountryCode": {
+                  "type": "string"
+                },
+                "Address": {
+                  "type": "object",
+                  "properties": {
+                    "city": {},
+                    "country": {
+                      "type": "string"
+                    },
+                    "countryCode": {
+                      "type": "string"
+                    },
+                    "geocodeAccuracy": {},
+                    "latitude": {},
+                    "longitude": {},
+                    "postalCode": {},
+                    "state": {},
+                    "stateCode": {},
+                    "street": {}
+                  }
+                },
+                "Email": {
+                  "type": "string"
+                },
+                "EmailPreferencesAutoBcc": {
+                  "type": "boolean"
+                },
+                "EmailPreferencesAutoBccStayInTouch": {
+                  "type": "boolean"
+                },
+                "EmailPreferencesStayInTouchReminder": {
+                  "type": "boolean"
+                },
+                "Alias": {
+                  "type": "string"
+                },
+                "CommunityNickname": {
+                  "type": "string"
+                },
+                "BadgeText": {
+                  "type": "string"
+                },
+                "IsActive": {
+                  "type": "boolean"
+                },
+                "TimeZoneSidKey": {
+                  "type": "string"
+                },
+                "UserRoleId": {
+                  "type": "string"
+                },
+                "LocaleSidKey": {
+                  "type": "string"
+                },
+                "ReceivesInfoEmails": {
+                  "type": "boolean"
+                },
+                "ReceivesAdminInfoEmails": {
+                  "type": "boolean"
+                },
+                "EmailEncodingKey": {
+                  "type": "string"
+                },
+                "ProfileId": {
+                  "type": "string"
+                },
+                "UserType": {
+                  "type": "string"
+                },
+                "LanguageLocaleKey": {
+                  "type": "string"
+                },
+                "LastLoginDate": {
+                  "type": "string"
+                },
+                "LastPasswordChangeDate": {
+                  "type": "string"
+                },
+                "CreatedDate": {
+                  "type": "string"
+                },
+                "CreatedById": {
+                  "type": "string"
+                },
+                "LastModifiedDate": {
+                  "type": "string"
+                },
+                "LastModifiedById": {
+                  "type": "string"
+                },
+                "SystemModstamp": {
+                  "type": "string"
+                },
+                "NumberOfFailedLogins": {
+                  "type": "integer"
+                },
+                "UserPermissionsMarketingUser": {
+                  "type": "boolean"
+                },
+                "UserPermissionsOfflineUser": {
+                  "type": "boolean"
+                },
+                "UserPermissionsAvantgoUser": {
+                  "type": "boolean"
+                },
+                "UserPermissionsCallCenterAutoLogin": {
+                  "type": "boolean"
+                },
+                "UserPermissionsMobileUser": {
+                  "type": "boolean"
+                },
+                "UserPermissionsSFContentUser": {
+                  "type": "boolean"
+                },
+                "UserPermissionsKnowledgeUser": {
+                  "type": "boolean"
+                },
+                "UserPermissionsInteractionUser": {
+                  "type": "boolean"
+                },
+                "UserPermissionsSupportUser": {
+                  "type": "boolean"
+                },
+                "UserPermissionsLiveAgentUser": {
+                  "type": "boolean"
+                },
+                "UserPermissionsChatterAnswersUser": {
+                  "type": "boolean"
+                },
+                "ForecastEnabled": {
+                  "type": "boolean"
+                },
+                "UserPreferencesActivityRemindersPopup": {
+                  "type": "boolean"
+                },
+                "UserPreferencesEventRemindersCheckboxDefault": {
+                  "type": "boolean"
+                },
+                "UserPreferencesTaskRemindersCheckboxDefault": {
+                  "type": "boolean"
+                },
+                "UserPreferencesReminderSoundOff": {
+                  "type": "boolean"
+                },
+                "UserPreferencesDisableAllFeedsEmail": {
+                  "type": "boolean"
+                },
+                "UserPreferencesDisableFollowersEmail": {
+                  "type": "boolean"
+                },
+                "UserPreferencesDisableProfilePostEmail": {
+                  "type": "boolean"
+                },
+                "UserPreferencesDisableChangeCommentEmail": {
+                  "type": "boolean"
+                },
+                "UserPreferencesDisableLaterCommentEmail": {
+                  "type": "boolean"
+                },
+                "UserPreferencesDisProfPostCommentEmail": {
+                  "type": "boolean"
+                },
+                "UserPreferencesApexPagesDeveloperMode": {
+                  "type": "boolean"
+                },
+                "UserPreferencesReceiveNoNotificationsAsApprover": {
+                  "type": "boolean"
+                },
+                "UserPreferencesReceiveNotificationsAsDelegatedApprover": {
+                  "type": "boolean"
+                },
+                "UserPreferencesHideCSNGetChatterMobileTask": {
+                  "type": "boolean"
+                },
+                "UserPreferencesDisableMentionsPostEmail": {
+                  "type": "boolean"
+                },
+                "UserPreferencesDisMentionsCommentEmail": {
+                  "type": "boolean"
+                },
+                "UserPreferencesHideCSNDesktopTask": {
+                  "type": "boolean"
+                },
+                "UserPreferencesHideChatterOnboardingSplash": {
+                  "type": "boolean"
+                },
+                "UserPreferencesHideSecondChatterOnboardingSplash": {
+                  "type": "boolean"
+                },
+                "UserPreferencesDisCommentAfterLikeEmail": {
+                  "type": "boolean"
+                },
+                "UserPreferencesDisableLikeEmail": {
+                  "type": "boolean"
+                },
+                "UserPreferencesSortFeedByComment": {
+                  "type": "boolean"
+                },
+                "UserPreferencesDisableMessageEmail": {
+                  "type": "boolean"
+                },
+                "UserPreferencesDisableBookmarkEmail": {
+                  "type": "boolean"
+                },
+                "UserPreferencesDisableSharePostEmail": {
+                  "type": "boolean"
+                },
+                "UserPreferencesEnableAutoSubForFeeds": {
+                  "type": "boolean"
+                },
+                "UserPreferencesDisableFileShareNotificationsForApi": {
+                  "type": "boolean"
+                },
+                "UserPreferencesShowTitleToExternalUsers": {
+                  "type": "boolean"
+                },
+                "UserPreferencesShowManagerToExternalUsers": {
+                  "type": "boolean"
+                },
+                "UserPreferencesShowEmailToExternalUsers": {
+                  "type": "boolean"
+                },
+                "UserPreferencesShowWorkPhoneToExternalUsers": {
+                  "type": "boolean"
+                },
+                "UserPreferencesShowMobilePhoneToExternalUsers": {
+                  "type": "boolean"
+                },
+                "UserPreferencesShowFaxToExternalUsers": {
+                  "type": "boolean"
+                },
+                "UserPreferencesShowStreetAddressToExternalUsers": {
+                  "type": "boolean"
+                },
+                "UserPreferencesShowCityToExternalUsers": {
+                  "type": "boolean"
+                },
+                "UserPreferencesShowStateToExternalUsers": {
+                  "type": "boolean"
+                },
+                "UserPreferencesShowPostalCodeToExternalUsers": {
+                  "type": "boolean"
+                },
+                "UserPreferencesShowCountryToExternalUsers": {
+                  "type": "boolean"
+                },
+                "UserPreferencesShowProfilePicToGuestUsers": {
+                  "type": "boolean"
+                },
+                "UserPreferencesShowTitleToGuestUsers": {
+                  "type": "boolean"
+                },
+                "UserPreferencesShowCityToGuestUsers": {
+                  "type": "boolean"
+                },
+                "UserPreferencesShowStateToGuestUsers": {
+                  "type": "boolean"
+                },
+                "UserPreferencesShowPostalCodeToGuestUsers": {
+                  "type": "boolean"
+                },
+                "UserPreferencesShowCountryToGuestUsers": {
+                  "type": "boolean"
+                },
+                "UserPreferencesPipelineViewHideHelpPopover": {
+                  "type": "boolean"
+                },
+                "UserPreferencesHideS1BrowserUI": {
+                  "type": "boolean"
+                },
+                "UserPreferencesDisableEndorsementEmail": {
+                  "type": "boolean"
+                },
+                "UserPreferencesPathAssistantCollapsed": {
+                  "type": "boolean"
+                },
+                "UserPreferencesCacheDiagnostics": {
+                  "type": "boolean"
+                },
+                "UserPreferencesShowEmailToGuestUsers": {
+                  "type": "boolean"
+                },
+                "UserPreferencesShowManagerToGuestUsers": {
+                  "type": "boolean"
+                },
+                "UserPreferencesShowWorkPhoneToGuestUsers": {
+                  "type": "boolean"
+                },
+                "UserPreferencesShowMobilePhoneToGuestUsers": {
+                  "type": "boolean"
+                },
+                "UserPreferencesShowFaxToGuestUsers": {
+                  "type": "boolean"
+                },
+                "UserPreferencesShowStreetAddressToGuestUsers": {
+                  "type": "boolean"
+                },
+                "UserPreferencesLightningExperiencePreferred": {
+                  "type": "boolean"
+                },
+                "UserPreferencesPreviewLightning": {
+                  "type": "boolean"
+                },
+                "UserPreferencesHideEndUserOnboardingAssistantModal": {
+                  "type": "boolean"
+                },
+                "UserPreferencesHideLightningMigrationModal": {
+                  "type": "boolean"
+                },
+                "UserPreferencesHideSfxWelcomeMat": {
+                  "type": "boolean"
+                },
+                "UserPreferencesHideBiggerPhotoCallout": {
+                  "type": "boolean"
+                },
+                "UserPreferencesGlobalNavBarWTShown": {
+                  "type": "boolean"
+                },
+                "UserPreferencesGlobalNavGridMenuWTShown": {
+                  "type": "boolean"
+                },
+                "UserPreferencesCreateLEXAppsWTShown": {
+                  "type": "boolean"
+                },
+                "UserPreferencesFavoritesWTShown": {
+                  "type": "boolean"
+                },
+                "UserPreferencesRecordHomeSectionCollapseWTShown": {
+                  "type": "boolean"
+                },
+                "UserPreferencesRecordHomeReservedWTShown": {
+                  "type": "boolean"
+                },
+                "UserPreferencesFavoritesShowTopFavorites": {
+                  "type": "boolean"
+                },
+                "UserPreferencesExcludeMailAppAttachments": {
+                  "type": "boolean"
+                },
+                "UserPreferencesSuppressTaskSFXReminders": {
+                  "type": "boolean"
+                },
+                "UserPreferencesSuppressEventSFXReminders": {
+                  "type": "boolean"
+                },
+                "UserPreferencesPreviewCustomTheme": {
+                  "type": "boolean"
+                },
+                "UserPreferencesHasCelebrationBadge": {
+                  "type": "boolean"
+                },
+                "UserPreferencesUserDebugModePref": {
+                  "type": "boolean"
+                },
+                "UserPreferencesSRHOverrideActivities": {
+                  "type": "boolean"
+                },
+                "UserPreferencesNewLightningReportRunPageEnabled": {
+                  "type": "boolean"
+                },
+                "IsPortalEnabled": {
+                  "type": "boolean"
+                },
+                "IsPortalSelfRegistered": {
+                  "type": "boolean"
+                },
+                "FullPhotoUrl": {
+                  "type": "string"
+                },
+                "SmallPhotoUrl": {
+                  "type": "string"
+                },
+                "IsExtIndicatorVisible": {
+                  "type": "boolean"
+                },
+                "OutOfOfficeMessage": {
+                  "type": "string"
+                },
+                "MediumPhotoUrl": {
+                  "type": "string"
+                },
+                "DigestFrequency": {
+                  "type": "string"
+                },
+                "DefaultGroupNotificationFrequency": {
+                  "type": "string"
+                },
+                "LastViewedDate": {
+                  "type": "string"
+                },
+                "LastReferencedDate": {
+                  "type": "string"
+                },
+                "BannerPhotoUrl": {
+                  "type": "string"
+                },
+                "SmallBannerPhotoUrl": {
+                  "type": "string"
+                },
+                "MediumBannerPhotoUrl": {
+                  "type": "string"
+                },
+                "IsProfilePhotoActive": {
+                  "type": "boolean"
+                },
+                "cnx__Agent_AutoLogin__c": {
+                  "type": "boolean"
+                },
+                "cnx__Agent_MobileAgent__c": {
+                  "type": "boolean"
+                },
+                "project_cloud__Allocatable__c": {
+                  "type": "boolean"
+                },
+                "project_cloud__Sorting_Hash__c": {
+                  "type": "string"
+                },
+                "UserTimezoneOffset__c": {
+                  "type": "integer"
+                },
+                "PagesApi__Is_Federated_User__c": {
+                  "type": "boolean"
+                },
+                "Can_Override_Event_Overlap__c": {
+                  "type": "boolean"
+                },
+                "Contact_Latitude__c": {
+                  "type": "integer"
+                },
+                "et4ae5__ExactTargetForAppExchangeAdmin__c": {
+                  "type": "boolean"
+                },
+                "et4ae5__ExactTargetForAppExchangeUser__c": {
+                  "type": "boolean"
+                },
+                "et4ae5__ValidExactTargetAdmin__c": {
+                  "type": "boolean"
+                },
+                "et4ae5__ValidExactTargetUser__c": {
+                  "type": "boolean"
+                },
+                "Test_Sandbox_User__c": {
+                  "type": "boolean"
+                },
+                "dfsle__CanManageAccount__c": {
+                  "type": "boolean"
+                }
+              }
+            }
+          }
+        },
+        "Get_user": {
+          "runAfter": {
+            "Parse_JSON": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "5de9ea0e-ca49-4f08-a6fe-786f39ff3cda"
+          },
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_azuread",
+              "operationId": "GetUser",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_azuread"
+            },
+            "parameters": {
+              "id": "@body('Parse_JSON')?['Email']"
+            },
+            "authentication": "@parameters('$authentication')"
+          }
+        },
+        "Create_a_channel": {
+          "runAfter": {
+            "Create_a_team": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "7f6ad100-c649-479f-91a3-47027271356c"
+          },
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_slack",
+              "operationId": "CreateChannel_V2",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_slack"
+            },
+            "parameters": {
+              "name": "@toLower(replace(triggerOutputs()?['body/Subject'],' ','-'))",
+              "is_private": true
+            },
+            "authentication": "@parameters('$authentication')"
+          }
+        },
+        "Update_record_(V3)": {
+          "runAfter": {
+            "Add_a_new_row": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "7ff30ab0-fed3-4847-bfc6-cf27e0d81e38"
+          },
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_salesforce_1",
+              "operationId": "PatchItem_V3",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_salesforce"
+            },
+            "parameters": {
+              "table": "Incident",
+              "id": "@triggerOutputs()?['body/Id']",
+              "item/Subject": "@triggerOutputs()?['body/Subject']",
+              "item/SlackChannelID__c": "@outputs('Create_a_channel')?['body/channel/id']"
+            },
+            "authentication": "@parameters('$authentication')"
+          }
+        }
+      }
+    },
+    "templateName": ""
+  },
+  "schemaVersion": "1.0.0.0"
+}

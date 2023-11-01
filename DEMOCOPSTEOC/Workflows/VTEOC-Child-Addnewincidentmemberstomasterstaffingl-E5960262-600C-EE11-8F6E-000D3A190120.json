@@ -1,0 +1,499 @@
+{
+  "properties": {
+    "connectionReferences": {
+      "shared_teams_3": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "new_sharedteams_78e78"
+        },
+        "api": {
+          "name": "shared_teams"
+        }
+      },
+      "shared_office365users_1": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "new_sharedoffice365users_8f9bf"
+        },
+        "api": {
+          "name": "shared_office365users"
+        }
+      },
+      "shared_commondataserviceforapps": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "democop_sharedcommondataserviceforapps_70956"
+        },
+        "api": {
+          "name": "shared_commondataserviceforapps"
+        }
+      },
+      "shared_office365_1": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "new_sharedoffice365_23120"
+        },
+        "api": {
+          "name": "shared_office365"
+        }
+      }
+    },
+    "definition": {
+      "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+      "contentVersion": "1.0.0.0",
+      "parameters": {
+        "$connections": {
+          "defaultValue": {},
+          "type": "Object"
+        },
+        "$authentication": {
+          "defaultValue": {},
+          "type": "SecureObject"
+        },
+        "VTEOC-FailureNotificationEmail (new_FailureNotificationEmail)": {
+          "defaultValue": "shawk@devgh.onmicrosoft.com",
+          "type": "String",
+          "metadata": {
+            "schemaName": "new_FailureNotificationEmail"
+          }
+        }
+      },
+      "triggers": {
+        "manual": {
+          "metadata": {
+            "operationMetadataId": "7b242795-7730-4c7c-9019-95909338d063"
+          },
+          "type": "Request",
+          "kind": "Button",
+          "inputs": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "text": {
+                  "title": "TeamName",
+                  "type": "string",
+                  "x-ms-dynamically-added": true,
+                  "description": "Please enter your input",
+                  "x-ms-content-hint": "TEXT"
+                },
+                "text_1": {
+                  "title": "TEOCNumber",
+                  "type": "string",
+                  "x-ms-dynamically-added": true,
+                  "description": "Please enter your input",
+                  "x-ms-content-hint": "TEXT"
+                }
+              },
+              "required": [
+                "text",
+                "text_1"
+              ]
+            }
+          }
+        }
+      },
+      "actions": {
+        "Initialize_varTeamName": {
+          "runAfter": {},
+          "metadata": {
+            "operationMetadataId": "c23eaea4-3572-4f0c-beff-863041661533"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "varTeamName",
+                "type": "string",
+                "value": "@triggerBody()['text']"
+              }
+            ]
+          }
+        },
+        "List_teams": {
+          "runAfter": {
+            "Get_role_table_with_reports_to_2": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "6233b8c7-3ee2-4a3e-8071-3b8dfe615506"
+          },
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_teams_3",
+              "operationId": "GetAllTeams",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_teams"
+            },
+            "parameters": {},
+            "authentication": {
+              "type": "Raw",
+              "value": "@json(decodeBase64(triggerOutputs().headers['X-MS-APIM-Tokens']))['$ConnectionKey']"
+            }
+          }
+        },
+        "Apply_to_each": {
+          "foreach": "@outputs('List_teams')?['body/value']",
+          "actions": {
+            "Condition": {
+              "actions": {
+                "List_all_tags_for_a_team": {
+                  "runAfter": {},
+                  "metadata": {
+                    "operationMetadataId": "5e353183-0535-4096-9f6d-5f5bd48b85d1"
+                  },
+                  "type": "OpenApiConnection",
+                  "inputs": {
+                    "host": {
+                      "connectionName": "shared_teams_3",
+                      "operationId": "GetTags",
+                      "apiId": "/providers/Microsoft.PowerApps/apis/shared_teams"
+                    },
+                    "parameters": {
+                      "groupId": "@items('Apply_to_each')?['id']"
+                    },
+                    "authentication": {
+                      "type": "Raw",
+                      "value": "@json(decodeBase64(triggerOutputs().headers['X-MS-APIM-Tokens']))['$ConnectionKey']"
+                    }
+                  }
+                },
+                "Apply_to_each_2": {
+                  "foreach": "@outputs('List_all_tags_for_a_team')?['body/value']",
+                  "actions": {
+                    "List_the_members_for_a_tag": {
+                      "runAfter": {},
+                      "metadata": {
+                        "operationMetadataId": "dba80653-3f78-4eb8-8aa4-1187ad31bc4e"
+                      },
+                      "type": "OpenApiConnection",
+                      "inputs": {
+                        "host": {
+                          "connectionName": "shared_teams_3",
+                          "operationId": "GetTagMembers",
+                          "apiId": "/providers/Microsoft.PowerApps/apis/shared_teams"
+                        },
+                        "parameters": {
+                          "groupId": "@items('Apply_to_each_2')?['teamId']",
+                          "tagId": "@items('Apply_to_each_2')?['id']"
+                        },
+                        "authentication": {
+                          "type": "Raw",
+                          "value": "@json(decodeBase64(triggerOutputs().headers['X-MS-APIM-Tokens']))['$ConnectionKey']"
+                        }
+                      }
+                    },
+                    "Apply_to_each_3": {
+                      "foreach": "@outputs('List_the_members_for_a_tag')?['body/value']",
+                      "actions": {
+                        "Get_user_profile_(V2)": {
+                          "runAfter": {},
+                          "metadata": {
+                            "operationMetadataId": "075f9e08-8f37-4033-a1c0-e86c5c8406ff"
+                          },
+                          "type": "OpenApiConnection",
+                          "inputs": {
+                            "host": {
+                              "connectionName": "shared_office365users_1",
+                              "operationId": "UserProfile_V2",
+                              "apiId": "/providers/Microsoft.PowerApps/apis/shared_office365users"
+                            },
+                            "parameters": {
+                              "id": "@items('Apply_to_each_3')?['userId']"
+                            },
+                            "authentication": {
+                              "type": "Raw",
+                              "value": "@json(decodeBase64(triggerOutputs().headers['X-MS-APIM-Tokens']))['$ConnectionKey']"
+                            }
+                          }
+                        },
+                        "Add_a_new_row": {
+                          "runAfter": {
+                            "Get_user_profile_(V2)": [
+                              "Succeeded"
+                            ]
+                          },
+                          "metadata": {
+                            "operationMetadataId": "08ad16fc-a45c-473f-9e0a-724fab3432fe"
+                          },
+                          "type": "OpenApiConnection",
+                          "inputs": {
+                            "host": {
+                              "connectionName": "shared_commondataserviceforapps",
+                              "operationId": "CreateRecord",
+                              "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
+                            },
+                            "parameters": {
+                              "entityName": "crb97_staffingliststds",
+                              "item/crb97_email": "@outputs('Get_user_profile_(V2)')?['body/userPrincipalName']",
+                              "item/crb97_name": "@outputs('Get_user_profile_(V2)')?['body/displayName']",
+                              "item/crb97_phonenumber": "@outputs('Get_user_profile_(V2)')?['body/mobilePhone']",
+                              "item/crb97_role": "@items('Apply_to_each_2')?['displayName']",
+                              "item/crb97_teocnumber": "@triggerBody()['text_1']",
+                              "item/crb97_title": "@variables('varTeamName')"
+                            },
+                            "authentication": {
+                              "type": "Raw",
+                              "value": "@json(decodeBase64(triggerOutputs().headers['X-MS-APIM-Tokens']))['$ConnectionKey']"
+                            }
+                          }
+                        }
+                      },
+                      "runAfter": {
+                        "List_the_members_for_a_tag": [
+                          "Succeeded"
+                        ]
+                      },
+                      "metadata": {
+                        "operationMetadataId": "61ca8e2c-4ff5-4ff3-a6e6-eab4c0b1b5a6"
+                      },
+                      "type": "Foreach"
+                    }
+                  },
+                  "runAfter": {
+                    "List_all_tags_for_a_team": [
+                      "Succeeded"
+                    ]
+                  },
+                  "metadata": {
+                    "operationMetadataId": "fc6d03f9-00d2-488a-aa07-b623209ab120"
+                  },
+                  "type": "Foreach"
+                }
+              },
+              "runAfter": {},
+              "expression": {
+                "equals": [
+                  "@items('Apply_to_each')?['displayName']",
+                  "@variables('varTeamName')"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "847de968-f5ca-4d14-b754-d625a352f5de"
+              },
+              "type": "If"
+            }
+          },
+          "runAfter": {
+            "List_teams": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "7df148ab-014a-46b1-ade5-796079495b10"
+          },
+          "type": "Foreach"
+        },
+        "Apply_to_each_4": {
+          "foreach": "@outputs('_Get_new_incident_entries_for_master_staffing_list_2')?['body/value']",
+          "actions": {
+            "Apply_to_each_5": {
+              "foreach": "@outputs('Get_role_table_with_reports_to_2')?['body/value']",
+              "actions": {
+                "Condition_2": {
+                  "actions": {
+                    "Update_a_row": {
+                      "runAfter": {},
+                      "metadata": {
+                        "operationMetadataId": "9c5aaf23-bf30-438d-8be3-71ffd1f3cae5"
+                      },
+                      "type": "OpenApiConnection",
+                      "inputs": {
+                        "host": {
+                          "connectionName": "shared_commondataserviceforapps",
+                          "operationId": "UpdateRecord",
+                          "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
+                        },
+                        "parameters": {
+                          "entityName": "crb97_staffingliststds",
+                          "recordId": "@items('Apply_to_each_4')?['crb97_externalprimarykey']",
+                          "item/crb97_erggroup": "@items('Apply_to_each_5')?['crb97_erg']",
+                          "item/crb97_reportsto": "@items('Apply_to_each_5')?['crb97_reportsto']",
+                          "item/crb97_title": "@items('Apply_to_each_4')?['crb97_title']"
+                        },
+                        "authentication": {
+                          "type": "Raw",
+                          "value": "@json(decodeBase64(triggerOutputs().headers['X-MS-APIM-Tokens']))['$ConnectionKey']"
+                        }
+                      }
+                    }
+                  },
+                  "runAfter": {},
+                  "expression": {
+                    "equals": [
+                      "@items('Apply_to_each_4')?['crb97_role']",
+                      "@items('Apply_to_each_4')?['crb97_title']"
+                    ]
+                  },
+                  "metadata": {
+                    "operationMetadataId": "e3be0c08-27b4-4d51-89a5-1fb1e2501334"
+                  },
+                  "type": "If"
+                }
+              },
+              "runAfter": {},
+              "metadata": {
+                "operationMetadataId": "8dc69736-b2da-4555-b2a6-945c603d7372"
+              },
+              "type": "Foreach"
+            }
+          },
+          "runAfter": {
+            "_Get_new_incident_entries_for_master_staffing_list_2": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "c4a31ddc-170d-46cc-b94b-1aa408609d0a"
+          },
+          "type": "Foreach"
+        },
+        "Respond_to_a_PowerApp_or_flow": {
+          "runAfter": {
+            "Apply_to_each_4": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "d14263d8-87e6-4950-9fc0-deac278344d4"
+          },
+          "type": "Response",
+          "kind": "PowerApp",
+          "inputs": {
+            "statusCode": 200,
+            "body": {
+              "status": "Completed"
+            },
+            "schema": {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "title": "Status",
+                  "x-ms-dynamically-added": true,
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "Scope_Failure_Notifications": {
+          "actions": {
+            "Compose_Flow_run_link": {
+              "runAfter": {},
+              "metadata": {
+                "operationMetadataId": "304e2c8e-c6d8-4bd0-ac4d-57951dd57763"
+              },
+              "type": "Compose",
+              "inputs": "@concat('https://us.flow.microsoft.com/manage/environments/', workflow()?['tags']?['environmentName'], '/flows/', workflow()?['name'], '/runs/', workflow()?['run']['name'])"
+            },
+            "Send_an_email_(V2)_Failure_notification": {
+              "runAfter": {
+                "Compose_Flow_run_link": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "bd4b39c2-3462-4a00-b21d-d8ac056f00d2"
+              },
+              "type": "OpenApiConnection",
+              "inputs": {
+                "host": {
+                  "connectionName": "shared_office365_1",
+                  "operationId": "SendEmailV2",
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_office365"
+                },
+                "parameters": {
+                  "emailMessage/To": "@parameters('VTEOC-FailureNotificationEmail (new_FailureNotificationEmail)')",
+                  "emailMessage/Subject": "Your @{workflow()?['tags']?['flowDisplayName']} flow failed",
+                  "emailMessage/Body": "<p>Check your flow.<br>\n<br>\n<a href=\"@{outputs('Compose_Flow_run_link')}\">Flow Run Link</a>&nbsp;</p>"
+                },
+                "authentication": {
+                  "type": "Raw",
+                  "value": "@json(decodeBase64(triggerOutputs().headers['X-MS-APIM-Tokens']))['$ConnectionKey']"
+                }
+              }
+            },
+            "Terminate_Mark_flow_run_failure": {
+              "runAfter": {
+                "Send_an_email_(V2)_Failure_notification": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "c3050a38-c258-4145-b3fa-4d5e80d70b67"
+              },
+              "type": "Terminate",
+              "inputs": {
+                "runStatus": "Failed"
+              }
+            }
+          },
+          "runAfter": {
+            "Respond_to_a_PowerApp_or_flow": [
+              "Failed",
+              "Skipped"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "072e1b99-2b98-4cdc-bb50-f9ef10d9a137"
+          },
+          "type": "Scope",
+          "description": "Set this Scope's Configure run after settings to \"has failed\", \"is skipped\", and \"has timed out\"."
+        },
+        "Get_role_table_with_reports_to_2": {
+          "runAfter": {
+            "Initialize_varTeamName": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "4c6cf8ba-4e75-4560-8b2f-7a3597e7fd73"
+          },
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_commondataserviceforapps",
+              "operationId": "ListRecords",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
+            },
+            "parameters": {
+              "entityName": "crb97_teocroleassignments_2s"
+            },
+            "authentication": {
+              "type": "Raw",
+              "value": "@json(decodeBase64(triggerOutputs().headers['X-MS-APIM-Tokens']))['$ConnectionKey']"
+            }
+          }
+        },
+        "_Get_new_incident_entries_for_master_staffing_list_2": {
+          "runAfter": {
+            "Apply_to_each": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "baf01d88-55e2-4bfb-be2e-b0e2e20fb549"
+          },
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_commondataserviceforapps",
+              "operationId": "ListRecords",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
+            },
+            "parameters": {
+              "entityName": "crb97_staffingliststds",
+              "$filter": "crb97_teocnumber eq '@{triggerBody()['text_1']}'"
+            },
+            "authentication": {
+              "type": "Raw",
+              "value": "@json(decodeBase64(triggerOutputs().headers['X-MS-APIM-Tokens']))['$ConnectionKey']"
+            }
+          }
+        }
+      }
+    },
+    "templateName": ""
+  },
+  "schemaVersion": "1.0.0.0"
+}

@@ -1,0 +1,14 @@
+<environmentvariabledefinition schemaname="new_ClientID">
+  <defaultvalue>e828c76f-d638-4023-a6f9-2923b706539c</defaultvalue>
+  <description default="e828c76f-d638-4023-a6f9-2923b706539c">
+    <label description="e828c76f-d638-4023-a6f9-2923b706539c" languagecode="1033" />
+  </description>
+  <displayname default="VTEOC-ClientID">
+    <label description="VTEOC-ClientID" languagecode="1033" />
+  </displayname>
+  <introducedversion>1.1.0.14</introducedversion>
+  <iscustomizable>1</iscustomizable>
+  <isrequired>0</isrequired>
+  <secretstore>0</secretstore>
+  <type>100000000</type>
+</environmentvariabledefinition>

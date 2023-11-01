@@ -1,0 +1,1466 @@
+{
+  "properties": {
+    "connectionReferences": {
+      "shared_office365_1": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "new_sharedoffice365_23120"
+        },
+        "api": {
+          "name": "shared_office365"
+        }
+      },
+      "shared_teams_1": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "new_sharedteams_78e78"
+        },
+        "api": {
+          "name": "shared_teams"
+        }
+      },
+      "shared_office365groups_1": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "new_sharedoffice365groups_ecfa3"
+        },
+        "api": {
+          "name": "shared_office365groups"
+        }
+      }
+    },
+    "definition": {
+      "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+      "contentVersion": "1.0.0.0",
+      "parameters": {
+        "$connections": {
+          "defaultValue": {},
+          "type": "Object"
+        },
+        "$authentication": {
+          "defaultValue": {},
+          "type": "SecureObject"
+        },
+        "VTEOC-PIODocRequestAPPURL (democop_PIODocRequestAPPURL)": {
+          "defaultValue": "https://apps.powerapps.com/play/e/4889dca5-dee5-ee7b-b377-61e1002e011b/a/c8b53a88-43c0-430f-a8f1-32a845a3e38f?tenantId=06901596-5550-425c-abe0-3240ed6ec7ae&source=portal",
+          "type": "String",
+          "metadata": {
+            "schemaName": "democop_PIODocRequestAPPURL"
+          }
+        },
+        "VTEOC-FailureNotificationEmail (new_FailureNotificationEmail)": {
+          "defaultValue": "shawk@devgh.onmicrosoft.com",
+          "type": "String",
+          "metadata": {
+            "schemaName": "new_FailureNotificationEmail"
+          }
+        },
+        "VTEOC-SecretID-NoEncryption (democop_DEMOSecretIDNoEncryption)": {
+          "defaultValue": "Y8U8Q~4cdr9mAKSV6ciavuYI1Llm1-yMvlDlWcO~",
+          "type": "String",
+          "metadata": {
+            "schemaName": "democop_DEMOSecretIDNoEncryption"
+          }
+        },
+        "VTEOC-TenantID (democop_DEMOTenantID)": {
+          "defaultValue": "06901596-5550-425c-abe0-3240ed6ec7ae",
+          "type": "String",
+          "metadata": {
+            "schemaName": "democop_DEMOTenantID"
+          }
+        },
+        "VTEOC-ClientID (new_ClientID)": {
+          "defaultValue": "e828c76f-d638-4023-a6f9-2923b706539c",
+          "type": "String",
+          "metadata": {
+            "schemaName": "new_ClientID",
+            "description": "e828c76f-d638-4023-a6f9-2923b706539c"
+          }
+        },
+        "VTEOC-EditIncidentAppURL (democop_EditIncidentAppURL)": {
+          "defaultValue": "https://apps.powerapps.com/play/e/4889dca5-dee5-ee7b-b377-61e1002e011b/a/302573aa-e3da-497b-8830-78f0e978d595?tenantId=06901596-5550-425c-abe0-3240ed6ec7ae&source=portal",
+          "type": "String",
+          "metadata": {
+            "schemaName": "democop_EditIncidentAppURL"
+          }
+        },
+        "VTEOC-IncidentOrgChartURL (democop_IncidentOrgChartURL)": {
+          "defaultValue": "https://app.powerbi.com/view?r=eyJrIjoiZDE5YjJkMzItMzNjMi00YWZlLThlNDItZjQ0ZDE1YjcxYWZlIiwidCI6IjA2OTAxNTk2LTU1NTAtNDI1Yy1hYmUwLTMyNDBlZDZlYzdhZSIsImMiOjN9",
+          "type": "String",
+          "metadata": {
+            "schemaName": "democop_IncidentOrgChartURL"
+          }
+        },
+        "VTEOC-EditScheduleAppURL (democop_EditScheduleAppURL)": {
+          "defaultValue": "https://apps.powerapps.com/play/e/4889dca5-dee5-ee7b-b377-61e1002e011b/a/f184c410-3691-4b65-a6ac-2ad1e2c1b8ea?tenantId=06901596-5550-425c-abe0-3240ed6ec7ae&source=portal",
+          "type": "String",
+          "metadata": {
+            "schemaName": "democop_EditScheduleAppURL"
+          }
+        },
+        "VTEOC-P4OrgChartURL (democop_P4OrgChartURL)": {
+          "defaultValue": "https://app.powerbi.com/view?r=eyJrIjoiMmExYWMwNTItYjg4MS00YzM4LTk5OWEtZDI3YTljYWU0ZDVlIiwidCI6IjA2OTAxNTk2LTU1NTAtNDI1Yy1hYmUwLTMyNDBlZDZlYzdhZSIsImMiOjN9",
+          "type": "String",
+          "metadata": {
+            "schemaName": "democop_P4OrgChartURL"
+          }
+        }
+      },
+      "triggers": {
+        "manual": {
+          "metadata": {
+            "operationMetadataId": "a2976662-c35c-457f-9937-26d9fbf55516"
+          },
+          "type": "Request",
+          "kind": "Button",
+          "inputs": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "text": {
+                  "title": "TeamID",
+                  "type": "string",
+                  "x-ms-dynamically-added": true,
+                  "description": "Please enter your input",
+                  "x-ms-content-hint": "TEXT"
+                },
+                "text_1": {
+                  "title": "TeamName",
+                  "type": "string",
+                  "x-ms-dynamically-added": true,
+                  "description": "Please enter your input",
+                  "x-ms-content-hint": "TEXT"
+                },
+                "text_2": {
+                  "title": "TEOCNumber",
+                  "type": "string",
+                  "x-ms-dynamically-added": true,
+                  "description": "Please enter your input",
+                  "x-ms-content-hint": "TEXT"
+                },
+                "text_3": {
+                  "title": "SharePointURL",
+                  "type": "string",
+                  "x-ms-dynamically-added": true,
+                  "description": "Please enter your input",
+                  "x-ms-content-hint": "TEXT"
+                },
+                "text_4": {
+                  "title": "SiteUserName",
+                  "type": "string",
+                  "x-ms-dynamically-added": true,
+                  "description": "Please enter your input",
+                  "x-ms-content-hint": "TEXT"
+                }
+              },
+              "required": [
+                "text",
+                "text_1",
+                "text_2",
+                "text_3",
+                "text_4"
+              ]
+            }
+          }
+        }
+      },
+      "actions": {
+        "Initialize_variable_TeamID": {
+          "runAfter": {},
+          "metadata": {
+            "operationMetadataId": "85505687-da9b-449d-af86-920f2766dd03"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "TeamID",
+                "type": "string",
+                "value": "@triggerBody()['text']"
+              }
+            ]
+          }
+        },
+        "Initialize_variable_-_Secret_ID_Value": {
+          "runAfter": {
+            "Initialize_variable_TeamID": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "e711fa53-4c0b-464b-8a36-5c516125afa5"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "SecretIDValue",
+                "type": "string",
+                "value": "@parameters('VTEOC-SecretID-NoEncryption (democop_DEMOSecretIDNoEncryption)')"
+              }
+            ]
+          }
+        },
+        "Initialize_variable_-_Client_ID": {
+          "runAfter": {
+            "Initialize_variable_-_Secret_ID_Value": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "efd8168b-e7fd-4e4a-b4f7-c22f63c1d9d4"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "ClientID",
+                "type": "string",
+                "value": "@parameters('VTEOC-ClientID (new_ClientID)')"
+              }
+            ]
+          }
+        },
+        "Initialize_variable_TenantID": {
+          "runAfter": {
+            "Initialize_variable_-_Client_ID": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "45707d6a-c1ae-435d-9897-a6866b4e473a"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "Tenant ID",
+                "type": "string",
+                "value": "@parameters('VTEOC-TenantID (democop_DEMOTenantID)')"
+              }
+            ]
+          }
+        },
+        "Initialize_variable_TEOC_Number": {
+          "runAfter": {
+            "Initialize_variable_TenantID": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "b97f91a2-6cb5-42e3-bc9d-e56ffaeb8747"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "varTEOCnumber",
+                "type": "string",
+                "value": "@triggerBody()['text_2']"
+              }
+            ]
+          }
+        },
+        "Initialize_variable_TeamName": {
+          "runAfter": {
+            "Initialize_variable_TEOC_Number": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "73ef9ef3-e36f-4ca0-9c81-60099c6720dd"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "TeamName",
+                "type": "string",
+                "value": "@triggerBody()['text_1']"
+              }
+            ]
+          }
+        },
+        "ChannelName": {
+          "runAfter": {
+            "Initialize_variable_TeamName": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "268ac15b-7b47-4be6-9f44-403e215aa654"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "ChannelName",
+                "type": "string"
+              }
+            ]
+          }
+        },
+        "Initialize_variable_NotebookID": {
+          "runAfter": {
+            "ChannelName": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "d8ddd1a7-32ed-44e4-9750-d8810e6633a9"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "NotebookID",
+                "type": "string"
+              }
+            ]
+          }
+        },
+        "Initialize_variable_NotebookURL": {
+          "runAfter": {
+            "Initialize_variable_NotebookID": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "7a2516ce-6e5e-4577-b36e-9911e7861802"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "NotebookURL",
+                "type": "string"
+              }
+            ]
+          }
+        },
+        "Scope_Failure_Notifications": {
+          "actions": {
+            "Compose_Flow_run_link": {
+              "runAfter": {},
+              "metadata": {
+                "operationMetadataId": "304e2c8e-c6d8-4bd0-ac4d-57951dd57763"
+              },
+              "type": "Compose",
+              "inputs": "@concat('https://us.flow.microsoft.com/manage/environments/', workflow()?['tags']?['environmentName'], '/flows/', workflow()?['name'], '/runs/', workflow()?['run']['name'])"
+            },
+            "Send_an_email_(V2)_Failure_notification": {
+              "runAfter": {
+                "Compose_Flow_run_link": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "bd4b39c2-3462-4a00-b21d-d8ac056f00d2"
+              },
+              "type": "OpenApiConnection",
+              "inputs": {
+                "host": {
+                  "connectionName": "shared_office365_1",
+                  "operationId": "SendEmailV2",
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_office365"
+                },
+                "parameters": {
+                  "emailMessage/To": "@parameters('VTEOC-FailureNotificationEmail (new_FailureNotificationEmail)')",
+                  "emailMessage/Subject": "Your @{workflow()?['tags']?['flowDisplayName']} flow failed",
+                  "emailMessage/Body": "<p>Check your flow.<br>\n<br>\n<a href=\"@{outputs('Compose_Flow_run_link')}\">Flow Run Link</a>&nbsp;</p>"
+                },
+                "authentication": {
+                  "type": "Raw",
+                  "value": "@json(decodeBase64(triggerOutputs().headers['X-MS-APIM-Tokens']))['$ConnectionKey']"
+                }
+              }
+            },
+            "Terminate_Mark_flow_run_failure": {
+              "runAfter": {
+                "Send_an_email_(V2)_Failure_notification": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "c3050a38-c258-4145-b3fa-4d5e80d70b67"
+              },
+              "type": "Terminate",
+              "inputs": {
+                "runStatus": "Failed"
+              }
+            }
+          },
+          "runAfter": {
+            "Respond_to_a_PowerApp_or_flow": [
+              "Failed",
+              "Skipped"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "072e1b99-2b98-4cdc-bb50-f9ef10d9a137"
+          },
+          "type": "Scope",
+          "description": "Set this Scope's Configure run after settings to \"has failed\", \"is skipped\", and \"has timed out\"."
+        },
+        "List_channels_in_new_team": {
+          "runAfter": {
+            "Initialize_variable_NotebookURL": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "850656cf-5a6f-4e5d-b3ca-431b89f0fd89"
+          },
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_teams_1",
+              "operationId": "GetChannelsForGroup",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_teams"
+            },
+            "parameters": {
+              "groupId": "@variables('TeamID')"
+            },
+            "authentication": {
+              "type": "Raw",
+              "value": "@json(decodeBase64(triggerOutputs().headers['X-MS-APIM-Tokens']))['$ConnectionKey']"
+            }
+          }
+        },
+        "Get_a_team": {
+          "runAfter": {
+            "List_channels_in_new_team": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "c665d2a1-3d91-4ed1-8a3a-1e82f7601c4d"
+          },
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_teams_1",
+              "operationId": "GetTeam",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_teams"
+            },
+            "parameters": {
+              "teamId": "@variables('TeamID')"
+            },
+            "authentication": {
+              "type": "Raw",
+              "value": "@json(decodeBase64(triggerOutputs().headers['X-MS-APIM-Tokens']))['$ConnectionKey']"
+            }
+          }
+        },
+        "Call_child_flow_-_GIS_Incident_and_URL_Creation": {
+          "runAfter": {
+            "Get_a_team": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "528453e3-2905-405e-949e-b363780028ef"
+          },
+          "type": "Workflow",
+          "inputs": {
+            "host": {
+              "workflowReferenceName": "cfe4a2e2-f5e5-ed11-a7c7-000d3a190120"
+            },
+            "body": {
+              "text": "@variables('TeamName')",
+              "text_1": "@variables('TeamID')"
+            }
+          }
+        },
+        "Apply_to_each_2": {
+          "foreach": "@outputs('List_channels_in_new_team')?['body/value']",
+          "actions": {
+            "Get_General_Tab_2": {
+              "actions": {
+                "Create_Team_Notebook_2": {
+                  "runAfter": {
+                    "add_Power_BI_P4_Structure_Chart_to_General_Channel_2": [
+                      "Succeeded"
+                    ]
+                  },
+                  "metadata": {
+                    "operationMetadataId": "8ade615c-431e-4b77-9ed8-d7cdd983a38b"
+                  },
+                  "type": "Http",
+                  "inputs": {
+                    "method": "POST",
+                    "uri": "https://graph.microsoft.com/beta/groups/@{variables('TeamID')}/onenote/notebooks",
+                    "headers": {
+                      "Content-Type": "application/json"
+                    },
+                    "body": {
+                      "displayName": "@{variables('TeamName')}"
+                    },
+                    "authentication": {
+                      "type": "ActiveDirectoryOAuth",
+                      "tenant": "@variables('Tenant ID')",
+                      "audience": "https://graph.microsoft.com",
+                      "clientId": "@variables('ClientID')",
+                      "secret": "@variables('SecretIDValue')"
+                    }
+                  }
+                },
+                "Parse_JSON_for_new_team_notebook_2": {
+                  "runAfter": {
+                    "Create_Team_Notebook_2": [
+                      "Succeeded"
+                    ]
+                  },
+                  "metadata": {
+                    "operationMetadataId": "dd405e92-c916-4b4a-adab-56a9235b834f"
+                  },
+                  "type": "ParseJson",
+                  "inputs": {
+                    "content": "@body('Create_Team_Notebook_2')",
+                    "schema": {
+                      "type": "object",
+                      "properties": {
+                        "@@odata.context": {
+                          "type": "string"
+                        },
+                        "id": {
+                          "type": "string"
+                        },
+                        "self": {
+                          "type": "string"
+                        },
+                        "createdDateTime": {
+                          "type": "string"
+                        },
+                        "displayName": {
+                          "type": "string"
+                        },
+                        "lastModifiedDateTime": {
+                          "type": "string"
+                        },
+                        "isDefault": {
+                          "type": "boolean"
+                        },
+                        "userRole": {
+                          "type": "string"
+                        },
+                        "isShared": {
+                          "type": "boolean"
+                        },
+                        "sectionsUrl": {
+                          "type": "string"
+                        },
+                        "sectionGroupsUrl": {
+                          "type": "string"
+                        },
+                        "createdBy": {
+                          "type": "object",
+                          "properties": {
+                            "user": {
+                              "type": "object",
+                              "properties": {
+                                "id": {
+                                  "type": "string"
+                                },
+                                "displayName": {
+                                  "type": "string"
+                                }
+                              }
+                            }
+                          }
+                        },
+                        "lastModifiedBy": {
+                          "type": "object",
+                          "properties": {
+                            "user": {
+                              "type": "object",
+                              "properties": {
+                                "id": {
+                                  "type": "string"
+                                },
+                                "displayName": {
+                                  "type": "string"
+                                }
+                              }
+                            }
+                          }
+                        },
+                        "links": {
+                          "type": "object",
+                          "properties": {
+                            "oneNoteClientUrl": {
+                              "type": "object",
+                              "properties": {
+                                "href": {
+                                  "type": "string"
+                                }
+                              }
+                            },
+                            "oneNoteWebUrl": {
+                              "type": "object",
+                              "properties": {
+                                "href": {
+                                  "type": "string"
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "Set_variable_NotebookID_2": {
+                  "runAfter": {
+                    "Parse_JSON_for_new_team_notebook_2": [
+                      "Succeeded"
+                    ]
+                  },
+                  "metadata": {
+                    "operationMetadataId": "d0cd2f35-2f34-4b41-ad56-ee5975d97036"
+                  },
+                  "type": "SetVariable",
+                  "inputs": {
+                    "name": "NotebookID",
+                    "value": "@body('Parse_JSON_for_new_team_notebook_2')?['id']"
+                  }
+                },
+                "Set_variable_NotebookURL_2": {
+                  "runAfter": {
+                    "Set_variable_NotebookID_2": [
+                      "Succeeded"
+                    ]
+                  },
+                  "metadata": {
+                    "operationMetadataId": "3bc8906f-6181-4988-8b3e-b610ad497253"
+                  },
+                  "type": "SetVariable",
+                  "inputs": {
+                    "name": "NotebookURL",
+                    "value": "@body('Parse_JSON_for_new_team_notebook_2')?['links']?['oneNoteWebUrl']?['href']"
+                  }
+                },
+                "Add_Team_Notebook_Tab_2": {
+                  "runAfter": {
+                    "Set_variable_NotebookURL_2": [
+                      "Succeeded"
+                    ]
+                  },
+                  "metadata": {
+                    "operationMetadataId": "97bc0cea-c2f8-468d-8a40-fad975279405"
+                  },
+                  "type": "Http",
+                  "inputs": {
+                    "method": "POST",
+                    "uri": "https://graph.microsoft.com/beta/teams/@{variables('TeamID')}/channels/@{items('Apply_to_each_2')?['id']}/tabs",
+                    "body": {
+                      "displayName": "Notes for @{variables('TeamName')}",
+                      "teamsApp@odata.bind": "https://graph.microsoft.com/beta/appCatalogs/teamsApps/com.microsoft.teamspace.tab.web",
+                      "teamsAppId": "com.microsoft.teamspace.tab.web",
+                      "configuration": {
+                        "entityId": "2DCA2E6C7A10415CAF6B8AB6661B3154",
+                        "contentUrl": "@{variables('NotebookURL')}",
+                        "websiteUrl": "@{variables('NotebookURL')}",
+                        "removeUrl": ""
+                      }
+                    },
+                    "authentication": {
+                      "type": "ActiveDirectoryOAuth",
+                      "tenant": "@variables('Tenant ID')",
+                      "audience": "https://graph.microsoft.com",
+                      "clientId": "@variables('ClientID')",
+                      "secret": "@variables('SecretIDValue')"
+                    }
+                  }
+                },
+                "add_edit_incident_app_tab_to_general__": {
+                  "runAfter": {
+                    "Add_Team_Notebook_Tab_2": [
+                      "Succeeded"
+                    ]
+                  },
+                  "metadata": {
+                    "operationMetadataId": "97bc0cea-c2f8-468d-8a40-fad975279405"
+                  },
+                  "type": "Http",
+                  "inputs": {
+                    "method": "POST",
+                    "uri": "https://graph.microsoft.com/beta/teams/@{variables('TeamID')}/channels/@{items('Apply_to_each_2')?['id']}/tabs",
+                    "body": {
+                      "displayName": "Edit Incident Roles",
+                      "teamsApp@odata.bind": "https://graph.microsoft.com/beta/appCatalogs/teamsApps/com.microsoft.teamspace.tab.web",
+                      "teamsAppId": "com.microsoft.teamspace.tab.web",
+                      "configuration": {
+                        "entityId": "2DCA2E6C7A10415CAF6B8AB6661B3154",
+                        "contentUrl": "@{parameters('VTEOC-EditIncidentAppURL (democop_EditIncidentAppURL)')}",
+                        "websiteUrl": "@{parameters('VTEOC-EditIncidentAppURL (democop_EditIncidentAppURL)')}",
+                        "removeUrl": ""
+                      }
+                    },
+                    "authentication": {
+                      "type": "ActiveDirectoryOAuth",
+                      "tenant": "@variables('Tenant ID')",
+                      "audience": "https://graph.microsoft.com",
+                      "clientId": "@variables('ClientID')",
+                      "secret": "@variables('SecretIDValue')"
+                    }
+                  }
+                },
+                "Make_sure_new_team_calendar_shows_up_in_outlook_2": {
+                  "runAfter": {
+                    "add_PIO_Document_Request_app_tab_to_general__": [
+                      "Succeeded"
+                    ]
+                  },
+                  "metadata": {
+                    "operationMetadataId": "10af0685-a692-4874-8def-cb08adb29427"
+                  },
+                  "type": "OpenApiConnection",
+                  "inputs": {
+                    "host": {
+                      "connectionName": "shared_office365groups_1",
+                      "operationId": "HttpRequest",
+                      "apiId": "/providers/Microsoft.PowerApps/apis/shared_office365groups"
+                    },
+                    "parameters": {
+                      "Uri": "https://graph.microsoft.com/v1.0/groups/@{variables('TeamID')}?$select=displayName,description,hideFromOutlookClients,hideFromAddressLists",
+                      "Method": "PATCH",
+                      "Body": "{\"hideFromOutlookClients\":\"false\",\"hideFromAddressLists\":\"false\"}",
+                      "ContentType": "application/json"
+                    },
+                    "authentication": {
+                      "type": "Raw",
+                      "value": "@json(decodeBase64(triggerOutputs().headers['X-MS-APIM-Tokens']))['$ConnectionKey']"
+                    }
+                  }
+                },
+                "Add_Team_Calendar_to_General_Tab_2": {
+                  "runAfter": {
+                    "Create_a_group_event_(V2)_2": [
+                      "Succeeded"
+                    ]
+                  },
+                  "metadata": {
+                    "operationMetadataId": "97bc0cea-c2f8-468d-8a40-fad975279405"
+                  },
+                  "type": "Http",
+                  "inputs": {
+                    "method": "POST",
+                    "uri": "https://graph.microsoft.com/beta/teams/@{variables('TeamID')}/channels/@{items('Apply_to_each_2')?['id']}/tabs",
+                    "body": {
+                      "displayName": "Calendar for @{variables('TeamName')}",
+                      "teamsApp@odata.bind": "https://graph.microsoft.com/beta/appCatalogs/teamsApps/com.microsoft.teamspace.tab.web",
+                      "teamsAppId": "com.microsoft.teamspace.tab.web",
+                      "configuration": {
+                        "entityId": "2DCA2E6C7A10415CAF6B8AB6661B3154",
+                        "contentUrl": "https://outlook.office.com/owa/?path=/group/@{triggerBody()['text_4']}/calendar",
+                        "websiteUrl": "https://outlook.office.com/owa/?path=/group/@{triggerBody()['text_4']}/calendar",
+                        "removeUrl": ""
+                      }
+                    },
+                    "authentication": {
+                      "type": "ActiveDirectoryOAuth",
+                      "tenant": "@variables('Tenant ID')",
+                      "audience": "https://graph.microsoft.com",
+                      "clientId": "@variables('ClientID')",
+                      "secret": "@variables('SecretIDValue')"
+                    }
+                  }
+                },
+                "Parse_JSON_-_maybe_remove_2": {
+                  "runAfter": {
+                    "Make_sure_new_team_calendar_shows_up_in_outlook_2": [
+                      "Succeeded"
+                    ]
+                  },
+                  "metadata": {
+                    "operationMetadataId": "1c0f3f91-a9e9-4725-8993-a42832c64fe0"
+                  },
+                  "type": "ParseJson",
+                  "inputs": {
+                    "content": "@body('Make_sure_new_team_calendar_shows_up_in_outlook_2')",
+                    "schema": {
+                      "type": "object",
+                      "properties": {
+                        "@@odata.context": {
+                          "type": "string"
+                        },
+                        "id": {
+                          "type": "string"
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "color": {
+                          "type": "string"
+                        },
+                        "hexColor": {
+                          "type": "string"
+                        },
+                        "isDefaultCalendar": {
+                          "type": "boolean"
+                        },
+                        "changeKey": {
+                          "type": "string"
+                        },
+                        "canShare": {
+                          "type": "boolean"
+                        },
+                        "canViewPrivateItems": {
+                          "type": "boolean"
+                        },
+                        "canEdit": {
+                          "type": "boolean"
+                        },
+                        "allowedOnlineMeetingProviders": {
+                          "type": "array"
+                        },
+                        "defaultOnlineMeetingProvider": {
+                          "type": "string"
+                        },
+                        "isTallyingResponses": {
+                          "type": "boolean"
+                        },
+                        "isRemovable": {
+                          "type": "boolean"
+                        },
+                        "owner": {
+                          "type": "object",
+                          "properties": {
+                            "name": {
+                              "type": "string"
+                            },
+                            "address": {
+                              "type": "string"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "Create_a_group_event_(V2)_2": {
+                  "runAfter": {
+                    "Parse_JSON_-_maybe_remove_2": [
+                      "Succeeded"
+                    ]
+                  },
+                  "metadata": {
+                    "operationMetadataId": "c70d7240-bc56-4142-af4c-3d4cb4864414"
+                  },
+                  "type": "OpenApiConnection",
+                  "inputs": {
+                    "host": {
+                      "connectionName": "shared_office365groups_1",
+                      "operationId": "CreateCalendarEventV2",
+                      "apiId": "/providers/Microsoft.PowerApps/apis/shared_office365groups"
+                    },
+                    "parameters": {
+                      "groupId": "@variables('TeamID')",
+                      "body/subject": "New Incident Created: @{variables('TeamName')}",
+                      "body/start/dateTime": "@utcNow()",
+                      "body/end/dateTime": "@utcNow()"
+                    },
+                    "authentication": {
+                      "type": "Raw",
+                      "value": "@json(decodeBase64(triggerOutputs().headers['X-MS-APIM-Tokens']))['$ConnectionKey']"
+                    }
+                  }
+                },
+                "add_PIO_Document_Request_app_tab_to_general__": {
+                  "runAfter": {
+                    "add_edit_incident_app_tab_to_general__": [
+                      "Succeeded"
+                    ]
+                  },
+                  "metadata": {
+                    "operationMetadataId": "97bc0cea-c2f8-468d-8a40-fad975279405"
+                  },
+                  "type": "Http",
+                  "inputs": {
+                    "method": "POST",
+                    "uri": "https://graph.microsoft.com/beta/teams/@{variables('TeamID')}/channels/@{items('Apply_to_each_2')?['id']}/tabs",
+                    "body": {
+                      "displayName": "PIO Document Request",
+                      "teamsApp@odata.bind": "https://graph.microsoft.com/beta/appCatalogs/teamsApps/com.microsoft.teamspace.tab.web",
+                      "teamsAppId": "com.microsoft.teamspace.tab.web",
+                      "configuration": {
+                        "entityId": "2DCA2E6C7A10415CAF6B8AB6661B3154",
+                        "contentUrl": "@{parameters('VTEOC-PIODocRequestAPPURL (democop_PIODocRequestAPPURL)')}",
+                        "websiteUrl": "@{parameters('VTEOC-PIODocRequestAPPURL (democop_PIODocRequestAPPURL)')}",
+                        "removeUrl": ""
+                      }
+                    },
+                    "authentication": {
+                      "type": "ActiveDirectoryOAuth",
+                      "tenant": "@variables('Tenant ID')",
+                      "audience": "https://graph.microsoft.com",
+                      "clientId": "@variables('ClientID')",
+                      "secret": "@variables('SecretIDValue')"
+                    }
+                  }
+                },
+                "add_sharepoint_site_tab_to_general_channel": {
+                  "runAfter": {},
+                  "metadata": {
+                    "operationMetadataId": "97bc0cea-c2f8-468d-8a40-fad975279405"
+                  },
+                  "type": "Http",
+                  "inputs": {
+                    "method": "POST",
+                    "uri": "https://graph.microsoft.com/beta/teams/@{variables('TeamID')}/channels/@{items('Apply_to_each_2')?['id']}/tabs",
+                    "body": {
+                      "displayName": "Incident Home",
+                      "teamsApp@odata.bind": "https://graph.microsoft.com/beta/appCatalogs/teamsApps/com.microsoft.teamspace.tab.web",
+                      "teamsAppId": "com.microsoft.teamspace.tab.web",
+                      "configuration": {
+                        "entityId": "2DCA2E6C7A10415CAF6B8AB6661B3154",
+                        "contentUrl": "@{triggerBody()['text_3']}",
+                        "websiteUrl": "@{triggerBody()['text_3']}",
+                        "removeUrl": ""
+                      }
+                    },
+                    "authentication": {
+                      "type": "ActiveDirectoryOAuth",
+                      "tenant": "@variables('Tenant ID')",
+                      "audience": "https://graph.microsoft.com",
+                      "clientId": "@variables('ClientID')",
+                      "secret": "@variables('SecretIDValue')"
+                    }
+                  }
+                },
+                "add_Power_BI_P4_Structure_Chart_to_General_Channel": {
+                  "runAfter": {
+                    "add_group_calendar_site_to_general_channel": [
+                      "Succeeded"
+                    ]
+                  },
+                  "metadata": {
+                    "operationMetadataId": "97bc0cea-c2f8-468d-8a40-fad975279405"
+                  },
+                  "type": "Http",
+                  "inputs": {
+                    "method": "POST",
+                    "uri": "https://graph.microsoft.com/beta/teams/@{variables('TeamID')}/channels/@{items('Apply_to_each_2')?['id']}/tabs",
+                    "body": {
+                      "displayName": "P4 Structure Chart",
+                      "teamsApp@odata.bind": "https://graph.microsoft.com/beta/appCatalogs/teamsApps/com.microsoft.teamspace.tab.web",
+                      "teamsAppId": "com.microsoft.teamspace.tab.web",
+                      "configuration": {
+                        "entityId": "2DCA2E6C7A10415CAF6B8AB6661B3154",
+                        "contentUrl": "@{parameters('VTEOC-P4OrgChartURL (democop_P4OrgChartURL)')}",
+                        "websiteUrl": "@{parameters('VTEOC-P4OrgChartURL (democop_P4OrgChartURL)')}",
+                        "removeUrl": ""
+                      }
+                    },
+                    "authentication": {
+                      "type": "ActiveDirectoryOAuth",
+                      "tenant": "@variables('Tenant ID')",
+                      "audience": "https://graph.microsoft.com",
+                      "clientId": "@variables('ClientID')",
+                      "secret": "@variables('SecretIDValue')"
+                    }
+                  }
+                },
+                "add_Power_BI_P4_Structure_Chart_to_General_Channel_2": {
+                  "runAfter": {
+                    "add_Power_BI_P4_Structure_Chart_to_General_Channel": [
+                      "Succeeded"
+                    ]
+                  },
+                  "metadata": {
+                    "operationMetadataId": "97bc0cea-c2f8-468d-8a40-fad975279405"
+                  },
+                  "type": "Http",
+                  "inputs": {
+                    "method": "POST",
+                    "uri": "https://graph.microsoft.com/beta/teams/@{variables('TeamID')}/channels/@{items('Apply_to_each_2')?['id']}/tabs",
+                    "body": {
+                      "displayName": "Staffing Org Chart",
+                      "teamsApp@odata.bind": "https://graph.microsoft.com/beta/appCatalogs/teamsApps/com.microsoft.teamspace.tab.web",
+                      "teamsAppId": "com.microsoft.teamspace.tab.web",
+                      "configuration": {
+                        "entityId": "2DCA2E6C7A10415CAF6B8AB6661B3154",
+                        "contentUrl": "@{parameters('VTEOC-IncidentOrgChartURL (democop_IncidentOrgChartURL)')}",
+                        "websiteUrl": "@{parameters('VTEOC-IncidentOrgChartURL (democop_IncidentOrgChartURL)')}",
+                        "removeUrl": ""
+                      }
+                    },
+                    "authentication": {
+                      "type": "ActiveDirectoryOAuth",
+                      "tenant": "@variables('Tenant ID')",
+                      "audience": "https://graph.microsoft.com",
+                      "clientId": "@variables('ClientID')",
+                      "secret": "@variables('SecretIDValue')"
+                    }
+                  }
+                },
+                "Add_Private_Sector_Reporting_Form_to_General_Tab": {
+                  "runAfter": {
+                    "Add_Team_Calendar_to_General_Tab_2": [
+                      "Succeeded"
+                    ]
+                  },
+                  "metadata": {
+                    "operationMetadataId": "97bc0cea-c2f8-468d-8a40-fad975279405"
+                  },
+                  "type": "Http",
+                  "inputs": {
+                    "method": "POST",
+                    "uri": "https://graph.microsoft.com/beta/teams/@{variables('TeamID')}/channels/@{items('Apply_to_each_2')?['id']}/tabs",
+                    "body": {
+                      "displayName": "Private Sector Reporting Form",
+                      "teamsApp@odata.bind": "https://graph.microsoft.com/beta/appCatalogs/teamsApps/com.microsoft.teamspace.tab.web",
+                      "teamsAppId": "com.microsoft.teamspace.tab.web",
+                      "configuration": {
+                        "entityId": "2DCA2E6C7A10415CAF6B8AB6661B3154",
+                        "contentUrl": "https://survey123.arcgis.com/share/d70f967008044876ad7e2fc02f26b23d?field:incident_name=@{triggerBody()['text_1']}",
+                        "websiteUrl": "https://survey123.arcgis.com/share/d70f967008044876ad7e2fc02f26b23d?field:incident_name=@{triggerBody()['text_1']}",
+                        "removeUrl": ""
+                      }
+                    },
+                    "authentication": {
+                      "type": "ActiveDirectoryOAuth",
+                      "tenant": "@variables('Tenant ID')",
+                      "audience": "https://graph.microsoft.com",
+                      "clientId": "@variables('ClientID')",
+                      "secret": "@variables('SecretIDValue')"
+                    }
+                  }
+                },
+                "Add_Private_Sector_Reports_Dashboard_to_General_Tab_": {
+                  "runAfter": {
+                    "Add_Private_Sector_Reporting_Form_to_General_Tab": [
+                      "Succeeded"
+                    ]
+                  },
+                  "metadata": {
+                    "operationMetadataId": "97bc0cea-c2f8-468d-8a40-fad975279405"
+                  },
+                  "type": "Http",
+                  "inputs": {
+                    "method": "POST",
+                    "uri": "https://graph.microsoft.com/beta/teams/@{variables('TeamID')}/channels/@{items('Apply_to_each_2')?['id']}/tabs",
+                    "body": {
+                      "displayName": "Private Sector Reports Dashboard",
+                      "teamsApp@odata.bind": "https://graph.microsoft.com/beta/appCatalogs/teamsApps/com.microsoft.teamspace.tab.web",
+                      "teamsAppId": "com.microsoft.teamspace.tab.web",
+                      "configuration": {
+                        "entityId": "2DCA2E6C7A10415CAF6B8AB6661B3154",
+                        "contentUrl": "https://ghis.maps.arcgis.com/apps/dashboards/94113d18e6c3484696db1484f6c0c075#incident_name=@{triggerBody()['text_1']}",
+                        "websiteUrl": "https://ghis.maps.arcgis.com/apps/dashboards/94113d18e6c3484696db1484f6c0c075#incident_name=@{triggerBody()['text_1']}",
+                        "removeUrl": ""
+                      }
+                    },
+                    "authentication": {
+                      "type": "ActiveDirectoryOAuth",
+                      "tenant": "@variables('Tenant ID')",
+                      "audience": "https://graph.microsoft.com",
+                      "clientId": "@variables('ClientID')",
+                      "secret": "@variables('SecretIDValue')"
+                    }
+                  }
+                },
+                "add_group_calendar_site_to_general_channel": {
+                  "runAfter": {
+                    "add_sharepoint_site_tab_to_general_channel": [
+                      "Succeeded"
+                    ]
+                  },
+                  "metadata": {
+                    "operationMetadataId": "97bc0cea-c2f8-468d-8a40-fad975279405"
+                  },
+                  "type": "Http",
+                  "inputs": {
+                    "method": "POST",
+                    "uri": "https://graph.microsoft.com/beta/teams/@{variables('TeamID')}/channels/@{items('Apply_to_each_2')?['id']}/tabs",
+                    "body": {
+                      "displayName": "Incident Home",
+                      "teamsApp@odata.bind": "https://graph.microsoft.com/beta/appCatalogs/teamsApps/com.microsoft.teamspace.tab.web",
+                      "teamsAppId": "com.microsoft.teamspace.tab.web",
+                      "configuration": {
+                        "entityId": "2DCA2E6C7A10415CAF6B8AB6661B3154",
+                        "contentUrl": "@{triggerBody()['text_3']}/SitePages/Group-Calendar.aspx",
+                        "websiteUrl": "@{triggerBody()['text_3']}/SitePages/Group-Calendar.aspx",
+                        "removeUrl": ""
+                      }
+                    },
+                    "authentication": {
+                      "type": "ActiveDirectoryOAuth",
+                      "tenant": "@variables('Tenant ID')",
+                      "audience": "https://graph.microsoft.com",
+                      "clientId": "@variables('ClientID')",
+                      "secret": "@variables('SecretIDValue')"
+                    }
+                  }
+                }
+              },
+              "runAfter": {},
+              "else": {
+                "actions": {
+                  "Get_Planning_Tab_2": {
+                    "actions": {
+                      "add_erg_report_tab_3": {
+                        "runAfter": {},
+                        "metadata": {
+                          "operationMetadataId": "97bc0cea-c2f8-468d-8a40-fad975279405"
+                        },
+                        "type": "Http",
+                        "inputs": {
+                          "method": "POST",
+                          "uri": "https://graph.microsoft.com/beta/teams/@{variables('TeamID')}/channels/@{items('Apply_to_each_2')?['id']}/tabs",
+                          "body": {
+                            "displayName": "ERG-Report-Summary",
+                            "teamsApp@odata.bind": "https://graph.microsoft.com/beta/appCatalogs/teamsApps/com.microsoft.teamspace.tab.web",
+                            "teamsAppId": "com.microsoft.teamspace.tab.web",
+                            "configuration": {
+                              "entityId": "2DCA2E6C7A10415CAF6B8AB6661B3154",
+                              "contentUrl": "@{body('Call_child_flow_-_GIS_Incident_and_URL_Creation')?['erg-report-submittalurl']}",
+                              "websiteUrl": "@{body('Call_child_flow_-_GIS_Incident_and_URL_Creation')?['erg-report-submittalurl']}",
+                              "removeUrl": ""
+                            }
+                          },
+                          "authentication": {
+                            "type": "ActiveDirectoryOAuth",
+                            "tenant": "@variables('Tenant ID')",
+                            "audience": "https://graph.microsoft.com",
+                            "clientId": "@variables('ClientID')",
+                            "secret": "@variables('SecretIDValue')"
+                          }
+                        }
+                      },
+                      "add_Objective_Planning_tab": {
+                        "runAfter": {
+                          "add_erg_report_tab_3": [
+                            "Succeeded"
+                          ]
+                        },
+                        "metadata": {
+                          "operationMetadataId": "97bc0cea-c2f8-468d-8a40-fad975279405"
+                        },
+                        "type": "Http",
+                        "inputs": {
+                          "method": "POST",
+                          "uri": "https://graph.microsoft.com/beta/teams/@{variables('TeamID')}/channels/@{items('Apply_to_each_2')?['id']}/tabs",
+                          "body": {
+                            "displayName": "Objective Planning",
+                            "teamsApp@odata.bind": "https://graph.microsoft.com/beta/appCatalogs/teamsApps/com.microsoft.teamspace.tab.web",
+                            "teamsAppId": "com.microsoft.teamspace.tab.web",
+                            "configuration": {
+                              "entityId": "2DCA2E6C7A10415CAF6B8AB6661B3154",
+                              "contentUrl": "@{body('Call_child_flow_-_GIS_Incident_and_URL_Creation')?['objective-planningurl']}",
+                              "websiteUrl": "@{body('Call_child_flow_-_GIS_Incident_and_URL_Creation')?['objective-planningurl']}",
+                              "removeUrl": ""
+                            }
+                          },
+                          "authentication": {
+                            "type": "ActiveDirectoryOAuth",
+                            "tenant": "@variables('Tenant ID')",
+                            "audience": "https://graph.microsoft.com",
+                            "clientId": "@variables('ClientID')",
+                            "secret": "@variables('SecretIDValue')"
+                          }
+                        }
+                      },
+                      "add_Dashboard_Tab_3": {
+                        "runAfter": {
+                          "add_Objective_Planning_tab": [
+                            "Succeeded"
+                          ]
+                        },
+                        "metadata": {
+                          "operationMetadataId": "97bc0cea-c2f8-468d-8a40-fad975279405"
+                        },
+                        "type": "Http",
+                        "inputs": {
+                          "method": "POST",
+                          "uri": "https://graph.microsoft.com/beta/teams/@{variables('TeamID')}/channels/@{items('Apply_to_each_2')?['id']}/tabs",
+                          "body": {
+                            "displayName": "Dashboard",
+                            "teamsApp@odata.bind": "https://graph.microsoft.com/beta/appCatalogs/teamsApps/com.microsoft.teamspace.tab.web",
+                            "teamsAppId": "com.microsoft.teamspace.tab.web",
+                            "configuration": {
+                              "entityId": "2DCA2E6C7A10415CAF6B8AB6661B3154",
+                              "contentUrl": "@{body('Call_child_flow_-_GIS_Incident_and_URL_Creation')?['dashboardurl']}",
+                              "websiteUrl": "@{body('Call_child_flow_-_GIS_Incident_and_URL_Creation')?['dashboardurl']}",
+                              "removeUrl": ""
+                            }
+                          },
+                          "authentication": {
+                            "type": "ActiveDirectoryOAuth",
+                            "tenant": "@variables('Tenant ID')",
+                            "audience": "https://graph.microsoft.com",
+                            "clientId": "@variables('ClientID')",
+                            "secret": "@variables('SecretIDValue')"
+                          }
+                        }
+                      },
+                      "add_sit_unit_review_tab": {
+                        "runAfter": {
+                          "add_Dashboard_Tab_3": [
+                            "Succeeded"
+                          ]
+                        },
+                        "metadata": {
+                          "operationMetadataId": "97bc0cea-c2f8-468d-8a40-fad975279405"
+                        },
+                        "type": "Http",
+                        "inputs": {
+                          "method": "POST",
+                          "uri": "https://graph.microsoft.com/beta/teams/@{variables('TeamID')}/channels/@{items('Apply_to_each_2')?['id']}/tabs",
+                          "body": {
+                            "displayName": "Sit Unit Review",
+                            "teamsApp@odata.bind": "https://graph.microsoft.com/beta/appCatalogs/teamsApps/com.microsoft.teamspace.tab.web",
+                            "teamsAppId": "com.microsoft.teamspace.tab.web",
+                            "configuration": {
+                              "entityId": "2DCA2E6C7A10415CAF6B8AB6661B3154",
+                              "contentUrl": "@{body('Call_child_flow_-_GIS_Incident_and_URL_Creation')?['sit-unit-reviewurl']}",
+                              "websiteUrl": "@{body('Call_child_flow_-_GIS_Incident_and_URL_Creation')?['sit-unit-reviewurl']}",
+                              "removeUrl": ""
+                            }
+                          },
+                          "authentication": {
+                            "type": "ActiveDirectoryOAuth",
+                            "tenant": "@variables('Tenant ID')",
+                            "audience": "https://graph.microsoft.com",
+                            "clientId": "@variables('ClientID')",
+                            "secret": "@variables('SecretIDValue')"
+                          }
+                        }
+                      },
+                      "add_edit_GIS_tab_4": {
+                        "runAfter": {
+                          "add_sit_unit_review_tab": [
+                            "Succeeded"
+                          ]
+                        },
+                        "metadata": {
+                          "operationMetadataId": "97bc0cea-c2f8-468d-8a40-fad975279405"
+                        },
+                        "type": "Http",
+                        "inputs": {
+                          "method": "POST",
+                          "uri": "https://graph.microsoft.com/beta/teams/@{variables('TeamID')}/channels/@{items('Apply_to_each_2')?['id']}/tabs",
+                          "body": {
+                            "displayName": "Edit GIS",
+                            "teamsApp@odata.bind": "https://graph.microsoft.com/beta/appCatalogs/teamsApps/com.microsoft.teamspace.tab.web",
+                            "teamsAppId": "com.microsoft.teamspace.tab.web",
+                            "configuration": {
+                              "entityId": "2DCA2E6C7A10415CAF6B8AB6661B3154",
+                              "contentUrl": "@{body('Call_child_flow_-_GIS_Incident_and_URL_Creation')?['edit-incidenturl']}",
+                              "websiteUrl": "@{body('Call_child_flow_-_GIS_Incident_and_URL_Creation')?['edit-incidenturl']}",
+                              "removeUrl": ""
+                            }
+                          },
+                          "authentication": {
+                            "type": "ActiveDirectoryOAuth",
+                            "tenant": "@variables('Tenant ID')",
+                            "audience": "https://graph.microsoft.com",
+                            "clientId": "@variables('ClientID')",
+                            "secret": "@variables('SecretIDValue')"
+                          }
+                        }
+                      },
+                      "add_Manage_Report_Period_tab_2": {
+                        "runAfter": {
+                          "add_edit_GIS_tab_4": [
+                            "Succeeded"
+                          ]
+                        },
+                        "metadata": {
+                          "operationMetadataId": "97bc0cea-c2f8-468d-8a40-fad975279405"
+                        },
+                        "type": "Http",
+                        "inputs": {
+                          "method": "POST",
+                          "uri": "https://graph.microsoft.com/beta/teams/@{variables('TeamID')}/channels/@{items('Apply_to_each_2')?['id']}/tabs",
+                          "body": {
+                            "displayName": "Manage Report Period",
+                            "teamsApp@odata.bind": "https://graph.microsoft.com/beta/appCatalogs/teamsApps/com.microsoft.teamspace.tab.web",
+                            "teamsAppId": "com.microsoft.teamspace.tab.web",
+                            "configuration": {
+                              "entityId": "2DCA2E6C7A10415CAF6B8AB6661B3154",
+                              "contentUrl": "@{body('Call_child_flow_-_GIS_Incident_and_URL_Creation')?['manage-report-periodurl']}",
+                              "websiteUrl": "@{body('Call_child_flow_-_GIS_Incident_and_URL_Creation')?['manage-report-periodurl']}",
+                              "removeUrl": ""
+                            }
+                          },
+                          "authentication": {
+                            "type": "ActiveDirectoryOAuth",
+                            "tenant": "@variables('Tenant ID')",
+                            "audience": "https://graph.microsoft.com",
+                            "clientId": "@variables('ClientID')",
+                            "secret": "@variables('SecretIDValue')"
+                          }
+                        }
+                      },
+                      "add_Event_Scheduling_app_tab_to_general_": {
+                        "runAfter": {
+                          "add_Manage_Report_Period_tab_2": [
+                            "Succeeded"
+                          ]
+                        },
+                        "metadata": {
+                          "operationMetadataId": "97bc0cea-c2f8-468d-8a40-fad975279405"
+                        },
+                        "type": "Http",
+                        "inputs": {
+                          "method": "POST",
+                          "uri": "https://graph.microsoft.com/beta/teams/@{variables('TeamID')}/channels/@{items('Apply_to_each_2')?['id']}/tabs",
+                          "body": {
+                            "displayName": "Add Event",
+                            "teamsApp@odata.bind": "https://graph.microsoft.com/beta/appCatalogs/teamsApps/com.microsoft.teamspace.tab.web",
+                            "teamsAppId": "com.microsoft.teamspace.tab.web",
+                            "configuration": {
+                              "entityId": "2DCA2E6C7A10415CAF6B8AB6661B3154",
+                              "contentUrl": "@{parameters('VTEOC-EditScheduleAppURL (democop_EditScheduleAppURL)')}",
+                              "websiteUrl": "@{parameters('VTEOC-EditScheduleAppURL (democop_EditScheduleAppURL)')}",
+                              "removeUrl": ""
+                            }
+                          },
+                          "authentication": {
+                            "type": "ActiveDirectoryOAuth",
+                            "tenant": "@variables('Tenant ID')",
+                            "audience": "https://graph.microsoft.com",
+                            "clientId": "@variables('ClientID')",
+                            "secret": "@variables('SecretIDValue')"
+                          }
+                        }
+                      }
+                    },
+                    "runAfter": {},
+                    "else": {
+                      "actions": {
+                        "add_Dashboard_Tab_4": {
+                          "runAfter": {},
+                          "metadata": {
+                            "operationMetadataId": "97bc0cea-c2f8-468d-8a40-fad975279405"
+                          },
+                          "type": "Http",
+                          "inputs": {
+                            "method": "POST",
+                            "uri": "https://graph.microsoft.com/beta/teams/@{variables('TeamID')}/channels/@{items('Apply_to_each_2')?['id']}/tabs",
+                            "body": {
+                              "displayName": "Dashboard",
+                              "teamsApp@odata.bind": "https://graph.microsoft.com/beta/appCatalogs/teamsApps/com.microsoft.teamspace.tab.web",
+                              "teamsAppId": "com.microsoft.teamspace.tab.web",
+                              "configuration": {
+                                "entityId": "2DCA2E6C7A10415CAF6B8AB6661B3154",
+                                "contentUrl": "@{body('Call_child_flow_-_GIS_Incident_and_URL_Creation')?['dashboardurl']}",
+                                "websiteUrl": "@{body('Call_child_flow_-_GIS_Incident_and_URL_Creation')?['dashboardurl']}",
+                                "removeUrl": ""
+                              }
+                            },
+                            "authentication": {
+                              "type": "ActiveDirectoryOAuth",
+                              "tenant": "@variables('Tenant ID')",
+                              "audience": "https://graph.microsoft.com",
+                              "clientId": "@variables('ClientID')",
+                              "secret": "@variables('SecretIDValue')"
+                            }
+                          }
+                        },
+                        "add_erg_report_tab_4": {
+                          "runAfter": {
+                            "add_Dashboard_Tab_4": [
+                              "Succeeded"
+                            ]
+                          },
+                          "metadata": {
+                            "operationMetadataId": "97bc0cea-c2f8-468d-8a40-fad975279405"
+                          },
+                          "type": "Http",
+                          "inputs": {
+                            "method": "POST",
+                            "uri": "https://graph.microsoft.com/beta/teams/@{variables('TeamID')}/channels/@{items('Apply_to_each_2')?['id']}/tabs",
+                            "body": {
+                              "displayName": "ERG-Report-Summary",
+                              "teamsApp@odata.bind": "https://graph.microsoft.com/beta/appCatalogs/teamsApps/com.microsoft.teamspace.tab.web",
+                              "teamsAppId": "com.microsoft.teamspace.tab.web",
+                              "configuration": {
+                                "entityId": "2DCA2E6C7A10415CAF6B8AB6661B3154",
+                                "contentUrl": "@{body('Call_child_flow_-_GIS_Incident_and_URL_Creation')?['erg-report-submittalurl']}",
+                                "websiteUrl": "@{body('Call_child_flow_-_GIS_Incident_and_URL_Creation')?['erg-report-submittalurl']}",
+                                "removeUrl": ""
+                              }
+                            },
+                            "authentication": {
+                              "type": "ActiveDirectoryOAuth",
+                              "tenant": "@variables('Tenant ID')",
+                              "audience": "https://graph.microsoft.com",
+                              "clientId": "@variables('ClientID')",
+                              "secret": "@variables('SecretIDValue')"
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "expression": {
+                      "equals": [
+                        "@items('Apply_to_each_2')?['displayName']",
+                        "Planning"
+                      ]
+                    },
+                    "metadata": {
+                      "operationMetadataId": "dd7e9a06-0962-42fc-8b26-0b9af39d3c3b"
+                    },
+                    "type": "If"
+                  }
+                }
+              },
+              "expression": {
+                "equals": [
+                  "@items('Apply_to_each_2')?['displayName']",
+                  "General"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "fbe2f98f-4445-40e9-b56b-72d2dd9c5c90"
+              },
+              "type": "If"
+            }
+          },
+          "runAfter": {
+            "Call_child_flow_-_GIS_Incident_and_URL_Creation": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "fbad2d41-8269-4c30-8222-d59e449e61af"
+          },
+          "type": "Foreach"
+        },
+        "Respond_to_a_PowerApp_or_flow": {
+          "runAfter": {
+            "Apply_to_each_2": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "54cbaf7d-a275-4255-bd57-9d071a8bca88"
+          },
+          "type": "Response",
+          "kind": "PowerApp",
+          "inputs": {
+            "statusCode": 200,
+            "body": {
+              "status": "completed"
+            },
+            "schema": {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "title": "status",
+                  "x-ms-dynamically-added": true,
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "templateName": ""
+  },
+  "schemaVersion": "1.0.0.0"
+}

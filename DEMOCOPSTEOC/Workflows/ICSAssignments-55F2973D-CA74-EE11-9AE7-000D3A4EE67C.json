@@ -1,0 +1,1005 @@
+{
+  "properties": {
+    "connectionReferences": {
+      "shared_teams": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "new_sharedteams_8c820"
+        },
+        "api": {
+          "name": "shared_teams"
+        }
+      },
+      "shared_commondataserviceforapps": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "democop_sharedcommondataserviceforapps_70956"
+        },
+        "api": {
+          "name": "shared_commondataserviceforapps"
+        }
+      },
+      "shared_salesforce": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "democop_sharedsalesforce_24f81"
+        },
+        "api": {
+          "name": "shared_salesforce"
+        }
+      },
+      "shared_office365users": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "new_sharedoffice365users_8f9bf"
+        },
+        "api": {
+          "name": "shared_office365users"
+        }
+      }
+    },
+    "definition": {
+      "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+      "contentVersion": "1.0.0.0",
+      "parameters": {
+        "$connections": {
+          "defaultValue": {},
+          "type": "Object"
+        },
+        "$authentication": {
+          "defaultValue": {},
+          "type": "SecureObject"
+        }
+      },
+      "triggers": {
+        "When_a_record_is_modified": {
+          "recurrence": {
+            "interval": 1,
+            "frequency": "Minute"
+          },
+          "splitOn": "@triggerOutputs()?['body/value']",
+          "metadata": {
+            "operationMetadataId": "b6836161-6b2b-4b04-9d2d-7cd1b3c7fae5"
+          },
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_salesforce",
+              "operationId": "GetOnUpdatedItems",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_salesforce"
+            },
+            "parameters": {
+              "table": "ICS_Assignment__c",
+              "$filter": "Added_from_dataverse__c ne 'True'"
+            },
+            "authentication": "@parameters('$authentication')"
+          }
+        }
+      },
+      "actions": {
+        "List_teams": {
+          "runAfter": {
+            "Apply_to_each_4": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "8ba1608d-c31b-4fad-871f-4415eea9b469"
+          },
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_teams",
+              "operationId": "GetAllTeams",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_teams"
+            },
+            "parameters": {},
+            "authentication": "@parameters('$authentication')"
+          }
+        },
+        "Apply_to_each": {
+          "foreach": "@outputs('List_teams')?['body/value']",
+          "actions": {
+            "Condition": {
+              "actions": {
+                "Apply_to_each_2": {
+                  "foreach": "@outputs('List_all_tags_for_a_team_2')?['body/value']",
+                  "actions": {
+                    "Condition_2": {
+                      "actions": {
+                        "Add_a_member_to_a_tag": {
+                          "runAfter": {},
+                          "metadata": {
+                            "operationMetadataId": "0845f8ac-d1b8-42ff-a942-fa6afd2fa9e2"
+                          },
+                          "type": "OpenApiConnection",
+                          "inputs": {
+                            "host": {
+                              "connectionName": "shared_teams",
+                              "operationId": "AddMemberToTag",
+                              "apiId": "/providers/Microsoft.PowerApps/apis/shared_teams"
+                            },
+                            "parameters": {
+                              "groupId": "@items('Apply_to_each')?['id']",
+                              "tagId": "@items('Apply_to_each_2')?['id']",
+                              "body/userId": "@variables('userID')"
+                            },
+                            "authentication": "@parameters('$authentication')"
+                          }
+                        }
+                      },
+                      "runAfter": {},
+                      "else": {
+                        "actions": {
+                          "List_the_members_for_a_tag": {
+                            "runAfter": {},
+                            "metadata": {
+                              "operationMetadataId": "be54ac69-cbbf-4598-ad3f-2182dbeb5993"
+                            },
+                            "type": "OpenApiConnection",
+                            "inputs": {
+                              "host": {
+                                "connectionName": "shared_teams",
+                                "operationId": "GetTagMembers",
+                                "apiId": "/providers/Microsoft.PowerApps/apis/shared_teams"
+                              },
+                              "parameters": {
+                                "groupId": "@items('Apply_to_each')?['id']",
+                                "tagId": "@items('Apply_to_each_2')?['id']"
+                              },
+                              "authentication": "@parameters('$authentication')"
+                            }
+                          },
+                          "Apply_to_each_6": {
+                            "foreach": "@outputs('List_the_members_for_a_tag')?['body/value']",
+                            "actions": {
+                              "Set_variable_4": {
+                                "runAfter": {},
+                                "metadata": {
+                                  "operationMetadataId": "3a2523f0-242f-4e28-a7ae-3d9929b48cea"
+                                },
+                                "type": "SetVariable",
+                                "inputs": {
+                                  "name": "TeamTagMemberID",
+                                  "value": "@items('Apply_to_each_6')?['userId']"
+                                }
+                              },
+                              "Condition_5": {
+                                "actions": {
+                                  "Delete_a_member_from_a_tag": {
+                                    "runAfter": {},
+                                    "metadata": {
+                                      "operationMetadataId": "c1c56bbe-2ca0-45a2-adbd-311eb1287908"
+                                    },
+                                    "type": "OpenApiConnection",
+                                    "inputs": {
+                                      "host": {
+                                        "connectionName": "shared_teams",
+                                        "operationId": "DeleteTagMember",
+                                        "apiId": "/providers/Microsoft.PowerApps/apis/shared_teams"
+                                      },
+                                      "parameters": {
+                                        "groupId": "@items('Apply_to_each_2')?['teamId']",
+                                        "tagId": "@items('Apply_to_each_2')?['id']",
+                                        "tagMemberId": "@items('Apply_to_each_6')?['id']"
+                                      },
+                                      "authentication": "@parameters('$authentication')"
+                                    }
+                                  }
+                                },
+                                "runAfter": {
+                                  "Set_variable_4": [
+                                    "Succeeded"
+                                  ]
+                                },
+                                "expression": {
+                                  "equals": [
+                                    "@variables('TeamTagMemberID')",
+                                    "@variables('userID')"
+                                  ]
+                                },
+                                "metadata": {
+                                  "operationMetadataId": "ce43aaf5-a7f6-4303-b12b-8ba5cc7b37b6"
+                                },
+                                "type": "If"
+                              }
+                            },
+                            "runAfter": {
+                              "List_the_members_for_a_tag": [
+                                "Succeeded"
+                              ]
+                            },
+                            "metadata": {
+                              "operationMetadataId": "57e57849-17eb-4bbb-b8df-575adb44dbf2"
+                            },
+                            "type": "Foreach"
+                          }
+                        }
+                      },
+                      "expression": {
+                        "equals": [
+                          "@items('Apply_to_each_2')?['displayName']",
+                          "@triggerOutputs()?['body/ICS_Position__c']"
+                        ]
+                      },
+                      "metadata": {
+                        "operationMetadataId": "8c5bdb4d-0719-4ada-bf99-913b8279ff27"
+                      },
+                      "type": "If"
+                    }
+                  },
+                  "runAfter": {
+                    "Condition_4": [
+                      "Succeeded"
+                    ]
+                  },
+                  "metadata": {
+                    "operationMetadataId": "33964e4a-c08c-4221-bdfa-13d5a775bd13"
+                  },
+                  "type": "Foreach"
+                },
+                "Condition_3": {
+                  "actions": {
+                    "Add_a_member_to_a_team": {
+                      "runAfter": {},
+                      "metadata": {
+                        "operationMetadataId": "79076f22-e1db-48d4-8ec2-30d460bf71a3"
+                      },
+                      "type": "OpenApiConnection",
+                      "inputs": {
+                        "host": {
+                          "connectionName": "shared_teams",
+                          "operationId": "AddMemberToTeam",
+                          "apiId": "/providers/Microsoft.PowerApps/apis/shared_teams"
+                        },
+                        "parameters": {
+                          "teamId": "@items('Apply_to_each')?['id']",
+                          "body/userId": "@variables('userID')",
+                          "body/owner": false
+                        },
+                        "authentication": "@parameters('$authentication')"
+                      }
+                    }
+                  },
+                  "runAfter": {
+                    "List_all_tags_for_a_team_2": [
+                      "Succeeded"
+                    ]
+                  },
+                  "else": {
+                    "actions": {
+                      "Add_a_member_to_a_team_2": {
+                        "runAfter": {},
+                        "metadata": {
+                          "operationMetadataId": "1cf6088a-dc32-4581-bb54-4a0485841e60"
+                        },
+                        "type": "OpenApiConnection",
+                        "inputs": {
+                          "host": {
+                            "connectionName": "shared_teams",
+                            "operationId": "AddMemberToTeam",
+                            "apiId": "/providers/Microsoft.PowerApps/apis/shared_teams"
+                          },
+                          "parameters": {
+                            "teamId": "@items('Apply_to_each')?['id']",
+                            "body/userId": "@variables('userID')",
+                            "body/owner": false
+                          },
+                          "authentication": "@parameters('$authentication')"
+                        }
+                      }
+                    }
+                  },
+                  "expression": {
+                    "equals": [
+                      "@triggerOutputs()?['body/ICS_Position__c']",
+                      "Incident Commander"
+                    ]
+                  },
+                  "metadata": {
+                    "operationMetadataId": "19b0c2e8-c4b8-4e3a-9316-9c005ae582b6"
+                  },
+                  "type": "If"
+                },
+                "List_all_tags_for_a_team_2": {
+                  "runAfter": {},
+                  "metadata": {
+                    "operationMetadataId": "84201af1-c64c-41bd-8827-b350127b4db0"
+                  },
+                  "type": "OpenApiConnection",
+                  "inputs": {
+                    "host": {
+                      "connectionName": "shared_teams",
+                      "operationId": "GetTags",
+                      "apiId": "/providers/Microsoft.PowerApps/apis/shared_teams"
+                    },
+                    "parameters": {
+                      "groupId": "@items('Apply_to_each')?['id']"
+                    },
+                    "authentication": "@parameters('$authentication')"
+                  }
+                },
+                "Set_variable_ICSRoleName": {
+                  "runAfter": {
+                    "Condition_3": [
+                      "Succeeded"
+                    ]
+                  },
+                  "metadata": {
+                    "operationMetadataId": "655dbab3-3ab3-4141-add6-207361582476"
+                  },
+                  "type": "SetVariable",
+                  "inputs": {
+                    "name": "ICSRoleName",
+                    "value": "@triggerOutputs()?['body/ICS_Position__c']"
+                  }
+                },
+                "Condition_4": {
+                  "actions": {},
+                  "runAfter": {
+                    "Set_variable_ICSRoleName": [
+                      "Succeeded"
+                    ]
+                  },
+                  "else": {
+                    "actions": {
+                      "Create_a_tag_for_a_team": {
+                        "runAfter": {},
+                        "metadata": {
+                          "operationMetadataId": "f2dee337-a1c6-42aa-9e49-d34817c16df1"
+                        },
+                        "type": "OpenApiConnection",
+                        "inputs": {
+                          "host": {
+                            "connectionName": "shared_teams",
+                            "operationId": "CreateTag",
+                            "apiId": "/providers/Microsoft.PowerApps/apis/shared_teams"
+                          },
+                          "parameters": {
+                            "groupId": "@items('Apply_to_each')?['id']",
+                            "body/displayName": "@triggerOutputs()?['body/ICS_Position__c']",
+                            "body/members": "@variables('userID')"
+                          },
+                          "authentication": "@parameters('$authentication')"
+                        }
+                      }
+                    }
+                  },
+                  "expression": {
+                    "contains": [
+                      "@string(outputs('List_all_tags_for_a_team_2')?['body'])",
+                      "@variables('ICSRoleName')"
+                    ]
+                  },
+                  "metadata": {
+                    "operationMetadataId": "d417a4db-cbe7-4693-9a9c-e4d24d9336b5"
+                  },
+                  "type": "If"
+                },
+                "List_rows": {
+                  "runAfter": {
+                    "Apply_to_each_2": [
+                      "Succeeded"
+                    ]
+                  },
+                  "metadata": {
+                    "operationMetadataId": "4d9a4767-5af2-4057-ac8d-5ad6edc79ac2"
+                  },
+                  "type": "OpenApiConnection",
+                  "inputs": {
+                    "host": {
+                      "connectionName": "shared_commondataserviceforapps",
+                      "operationId": "ListRecords",
+                      "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
+                    },
+                    "parameters": {
+                      "entityName": "crb97_teocincidenttransaction_3s",
+                      "$filter": "crb97_title eq '@{items('Apply_to_each')?['displayName']}'"
+                    },
+                    "authentication": "@parameters('$authentication')"
+                  }
+                },
+                "Apply_to_each_7": {
+                  "foreach": "@outputs('List_rows')?['body/value']",
+                  "actions": {
+                    "Set_variable_6": {
+                      "runAfter": {},
+                      "metadata": {
+                        "operationMetadataId": "cba765e6-1e4f-4d38-9783-e0e43697c5b1"
+                      },
+                      "type": "SetVariable",
+                      "inputs": {
+                        "name": "SlackChannelID",
+                        "value": "@items('Apply_to_each_7')?['crd69_slackchannelid']"
+                      }
+                    }
+                  },
+                  "runAfter": {
+                    "List_rows": [
+                      "Succeeded"
+                    ]
+                  },
+                  "metadata": {
+                    "operationMetadataId": "8d564d37-0a88-458d-a230-cfda64256a2d"
+                  },
+                  "type": "Foreach"
+                },
+                "Add_a_new_row": {
+                  "runAfter": {
+                    "Apply_to_each_7": [
+                      "Succeeded"
+                    ]
+                  },
+                  "metadata": {
+                    "operationMetadataId": "7c4341fc-1852-422b-a930-8165074f9d05"
+                  },
+                  "type": "OpenApiConnection",
+                  "inputs": {
+                    "host": {
+                      "connectionName": "shared_commondataserviceforapps",
+                      "operationId": "CreateRecord",
+                      "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
+                    },
+                    "parameters": {
+                      "entityName": "crb97_staffingliststds",
+                      "item/crb97_email": "@variables('Email')",
+                      "item/crb97_name": "@variables('FullName')",
+                      "item/crb97_role": "@triggerOutputs()?['body/ICS_Position__c']",
+                      "item/crb97_staffingliststdid": "@items('Apply_to_each')?['id']",
+                      "item/crb97_title": "@variables('IncidentName')"
+                    },
+                    "authentication": "@parameters('$authentication')"
+                  }
+                }
+              },
+              "runAfter": {},
+              "expression": {
+                "equals": [
+                  "@variables('IncidentName')",
+                  "@items('Apply_to_each')?['displayName']"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "193602fc-6158-45b8-aedf-4184e8676738"
+              },
+              "type": "If"
+            }
+          },
+          "runAfter": {
+            "List_teams": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "9220bac0-5fb5-4c84-9cfb-62305dbe90cb"
+          },
+          "type": "Foreach",
+          "runtimeConfiguration": {
+            "concurrency": {
+              "repetitions": 50
+            }
+          }
+        },
+        "Get_records_Users": {
+          "runAfter": {},
+          "metadata": {
+            "operationMetadataId": "d0cc822e-ebd5-4057-ba2e-dad4e509e2dd"
+          },
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_salesforce",
+              "operationId": "GetItems",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_salesforce"
+            },
+            "parameters": {
+              "table": "User",
+              "$filter": "Id eq '@{triggerOutputs()?['body/User__c']}'"
+            },
+            "authentication": "@parameters('$authentication')"
+          },
+          "runtimeConfiguration": {
+            "paginationPolicy": {
+              "minimumItemCount": 5000
+            }
+          }
+        },
+        "Apply_to_each_4": {
+          "foreach": "@outputs('Get_records_Users')?['body/value']",
+          "actions": {
+            "Search_for_users_(V2)": {
+              "runAfter": {},
+              "metadata": {
+                "operationMetadataId": "b35d2b89-66eb-4f95-becd-d2baa1be2eab"
+              },
+              "type": "OpenApiConnection",
+              "inputs": {
+                "host": {
+                  "connectionName": "shared_office365users",
+                  "operationId": "SearchUserV2",
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_office365users"
+                },
+                "parameters": {
+                  "searchTerm": "@items('Apply_to_each_4')?['Email']",
+                  "isSearchTermRequired": true
+                },
+                "authentication": "@parameters('$authentication')"
+              }
+            },
+            "Condition_6": {
+              "actions": {
+                "Apply_to_each_5": {
+                  "foreach": "@outputs('Search_for_users_(V2)')?['body/value']",
+                  "actions": {
+                    "Set_variable_userID": {
+                      "runAfter": {},
+                      "metadata": {
+                        "operationMetadataId": "f6fd80bd-314a-4c75-8909-0b3deb1ef7ba"
+                      },
+                      "type": "SetVariable",
+                      "inputs": {
+                        "name": "userID",
+                        "value": "@items('Apply_to_each_5')?['Id']"
+                      }
+                    },
+                    "Set_variable_Email": {
+                      "runAfter": {
+                        "Set_variable_userID": [
+                          "Succeeded"
+                        ]
+                      },
+                      "metadata": {
+                        "operationMetadataId": "2cbe6f46-6f97-4ad0-bb04-021d604e4043"
+                      },
+                      "type": "SetVariable",
+                      "inputs": {
+                        "name": "Email",
+                        "value": "@items('Apply_to_each_4')?['Email']"
+                      }
+                    },
+                    "Set_variable": {
+                      "runAfter": {
+                        "Set_variable_Email": [
+                          "Succeeded"
+                        ]
+                      },
+                      "metadata": {
+                        "operationMetadataId": "46d84a66-6ec6-4200-9ded-9f100b10574a"
+                      },
+                      "type": "SetVariable",
+                      "inputs": {
+                        "name": "FullName",
+                        "value": "@items('Apply_to_each_4')?['Name']"
+                      }
+                    }
+                  },
+                  "runAfter": {},
+                  "metadata": {
+                    "operationMetadataId": "cd4899b2-ddae-4570-98cb-cebecd6eb521"
+                  },
+                  "type": "Foreach"
+                }
+              },
+              "runAfter": {
+                "Search_for_users_(V2)": [
+                  "Succeeded"
+                ]
+              },
+              "else": {
+                "actions": {
+                  "HTTP": {
+                    "runAfter": {},
+                    "metadata": {
+                      "operationMetadataId": "ae52df23-b977-4ec0-9804-7b4bc1ad1807"
+                    },
+                    "type": "Http",
+                    "inputs": {
+                      "method": "POST",
+                      "uri": "https://graph.microsoft.com/v1.0/invitations",
+                      "body": {
+                        "invitedUserDisplayName": "@{items('Apply_to_each_4')?['Name']}",
+                        "invitedUserEmailAddress": "@{items('Apply_to_each_4')?['Email']}",
+                        "sendInvitationMessage": false,
+                        "inviteRedirectUrl": "https://teams.microsoft.com"
+                      },
+                      "authentication": {
+                        "type": "ActiveDirectoryOAuth",
+                        "tenant": "06901596-5550-425c-abe0-3240ed6ec7ae",
+                        "audience": "https://graph.microsoft.com",
+                        "clientId": "e828c76f-d638-4023-a6f9-2923b706539c",
+                        "secret": "fPc8Q~zCQ0AnXE332Q.sohyDp6QLrPDxVPMl6bQc"
+                      }
+                    }
+                  },
+                  "Parse_JSON": {
+                    "runAfter": {
+                      "HTTP": [
+                        "Succeeded"
+                      ]
+                    },
+                    "metadata": {
+                      "operationMetadataId": "87864297-11f4-4183-9c87-1cb055ef0de6"
+                    },
+                    "type": "ParseJson",
+                    "inputs": {
+                      "content": "@body('HTTP')",
+                      "schema": {
+                        "type": "object",
+                        "properties": {
+                          "@@odata.context": {
+                            "type": "string"
+                          },
+                          "id": {
+                            "type": "string"
+                          },
+                          "inviteRedeemUrl": {
+                            "type": "string"
+                          },
+                          "invitedUserDisplayName": {
+                            "type": "string"
+                          },
+                          "invitedUserType": {
+                            "type": "string"
+                          },
+                          "invitedUserEmailAddress": {
+                            "type": "string"
+                          },
+                          "sendInvitationMessage": {
+                            "type": "boolean"
+                          },
+                          "resetRedemption": {
+                            "type": "boolean"
+                          },
+                          "inviteRedirectUrl": {
+                            "type": "string"
+                          },
+                          "status": {
+                            "type": "string"
+                          },
+                          "invitedUserMessageInfo": {
+                            "type": "object",
+                            "properties": {
+                              "messageLanguage": {},
+                              "customizedMessageBody": {},
+                              "ccRecipients": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "emailAddress": {
+                                      "type": "object",
+                                      "properties": {
+                                        "name": {},
+                                        "address": {}
+                                      }
+                                    }
+                                  },
+                                  "required": [
+                                    "emailAddress"
+                                  ]
+                                }
+                              }
+                            }
+                          },
+                          "invitedUser": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "Set_variable_userID_2": {
+                    "runAfter": {
+                      "Parse_JSON": [
+                        "Succeeded"
+                      ]
+                    },
+                    "metadata": {
+                      "operationMetadataId": "f6fd80bd-314a-4c75-8909-0b3deb1ef7ba"
+                    },
+                    "type": "SetVariable",
+                    "inputs": {
+                      "name": "userID",
+                      "value": "@body('Parse_JSON')?['invitedUser']?['id']"
+                    }
+                  },
+                  "Set_variable_Email_2": {
+                    "runAfter": {
+                      "Set_variable_userID_2": [
+                        "Succeeded"
+                      ]
+                    },
+                    "metadata": {
+                      "operationMetadataId": "2cbe6f46-6f97-4ad0-bb04-021d604e4043"
+                    },
+                    "type": "SetVariable",
+                    "inputs": {
+                      "name": "Email",
+                      "value": "@body('Parse_JSON')?['invitedUserEmailAddress']"
+                    }
+                  },
+                  "Set_variable_3": {
+                    "runAfter": {
+                      "Set_variable_Email_2": [
+                        "Succeeded"
+                      ]
+                    },
+                    "metadata": {
+                      "operationMetadataId": "dfc316f7-96ac-4bfe-b71f-9be54812913c"
+                    },
+                    "type": "SetVariable",
+                    "inputs": {
+                      "name": "FullName",
+                      "value": "@body('Parse_JSON')?['invitedUserDisplayName']"
+                    }
+                  }
+                }
+              },
+              "expression": {
+                "greater": [
+                  "@length(outputs('Search_for_users_(V2)')?['body/value'])",
+                  0
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "036cec62-d651-4ced-b40a-0b4d53e0c742"
+              },
+              "type": "If"
+            }
+          },
+          "runAfter": {
+            "Apply_to_each_3": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "55c25e71-78c6-4849-8673-d2ddf36ff68b"
+          },
+          "type": "Foreach",
+          "runtimeConfiguration": {
+            "concurrency": {
+              "repetitions": 50
+            }
+          }
+        },
+        "Get_records_Incidents": {
+          "runAfter": {
+            "Get_records_Users": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "d0cc822e-ebd5-4057-ba2e-dad4e509e2dd"
+          },
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_salesforce",
+              "operationId": "GetItems",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_salesforce"
+            },
+            "parameters": {
+              "table": "Incident",
+              "$filter": "Id eq '@{triggerOutputs()?['body/Incident__c']}'"
+            },
+            "authentication": "@parameters('$authentication')"
+          },
+          "runtimeConfiguration": {
+            "paginationPolicy": {
+              "minimumItemCount": 5000
+            }
+          }
+        },
+        "Apply_to_each_3": {
+          "foreach": "@outputs('Get_records_Incidents')?['body/value']",
+          "actions": {
+            "Set_variable_2": {
+              "runAfter": {},
+              "metadata": {
+                "operationMetadataId": "aed87bc8-60b4-4b84-a69f-3ad0ed1173a7"
+              },
+              "type": "SetVariable",
+              "inputs": {
+                "name": "IncidentName",
+                "value": "@items('Apply_to_each_3')?['Subject']"
+              }
+            }
+          },
+          "runAfter": {
+            "Initialize_variable": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "48a5bd6c-ae83-4231-9845-c56e26bf7392"
+          },
+          "type": "Foreach",
+          "runtimeConfiguration": {
+            "concurrency": {
+              "repetitions": 50
+            }
+          }
+        },
+        "Initialize_variable_IncidentName": {
+          "runAfter": {
+            "Initialize_variable_ICSRoleName": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "4bb14fd1-5fd3-4683-8711-df3a87047c9e"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "IncidentName",
+                "type": "string"
+              }
+            ]
+          }
+        },
+        "Initialize_variable_ICSRoleName": {
+          "runAfter": {
+            "Get_records_Incidents": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "11079ebc-3789-4477-bd8e-6de11340f8e5"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "ICSRoleName",
+                "type": "string"
+              }
+            ]
+          }
+        },
+        "Initialize_variable_TeamTagMemberID": {
+          "runAfter": {
+            "Initialize_variable_IncidentName": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "f9465f81-7d27-46ce-a989-b72472d3a7cc"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "TeamTagMemberID",
+                "type": "string"
+              }
+            ]
+          }
+        },
+        "Initialize_variable_SlackChannelID": {
+          "runAfter": {
+            "Initialize_variable_TeamTagMemberID": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "e2ca4767-e41f-4734-932e-77100843502b"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "SlackChannelID",
+                "type": "string"
+              }
+            ]
+          }
+        },
+        "Initialize_variable_TeamID": {
+          "runAfter": {
+            "Initialize_variable_SlackChannelID": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "56bb8184-cb97-4729-867a-dbebe034f508"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "TeamID",
+                "type": "string"
+              }
+            ]
+          }
+        },
+        "Initialize_variable_userID": {
+          "runAfter": {
+            "Initialize_variable_TeamID": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "43acf0e2-3db1-4d33-8e58-27e7a06ef190"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "userID",
+                "type": "string"
+              }
+            ]
+          }
+        },
+        "Initialize_variable_Email": {
+          "runAfter": {
+            "Initialize_variable_userID": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "69d33362-80e7-4b50-8682-3a8af17d63e5"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "Email",
+                "type": "string"
+              }
+            ]
+          }
+        },
+        "Call_Child_Flow_-_Add_user_to_Incident_Slack_Channel": {
+          "runAfter": {
+            "Apply_to_each": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "9daa6d25-2b2a-4672-96df-b73fef81f059"
+          },
+          "type": "Workflow",
+          "inputs": {
+            "host": {
+              "workflowReferenceName": "8ab42701-ca74-ee11-9ae7-000d3a4ee67c"
+            },
+            "body": {
+              "text": "@variables('Email')",
+              "text_1": "@variables('SlackChannelID')"
+            }
+          }
+        },
+        "Initialize_variable": {
+          "runAfter": {
+            "Initialize_variable_Email": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "25845692-70c8-405e-a891-d3abcdfe75d9"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "FullName",
+                "type": "string"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "templateName": ""
+  },
+  "schemaVersion": "1.0.0.0"
+}

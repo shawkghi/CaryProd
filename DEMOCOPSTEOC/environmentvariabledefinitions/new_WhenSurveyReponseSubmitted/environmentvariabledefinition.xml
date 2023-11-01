@@ -1,0 +1,14 @@
+<environmentvariabledefinition schemaname="new_WhenSurveyReponseSubmitted">
+  <defaultvalue>fe619efaa41648dda4b57175fe789a84</defaultvalue>
+  <description default="Create Site Rep">
+    <label description="Create Site Rep" languagecode="1033" />
+  </description>
+  <displayname default="VTEOC-WhenSurveyReponseSubmitted">
+    <label description="VTEOC-WhenSurveyReponseSubmitted" languagecode="1033" />
+  </displayname>
+  <introducedversion>1.1.0.14</introducedversion>
+  <iscustomizable>1</iscustomizable>
+  <isrequired>0</isrequired>
+  <secretstore>0</secretstore>
+  <type>100000000</type>
+</environmentvariabledefinition>

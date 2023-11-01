@@ -1,0 +1,245 @@
+{
+  "properties": {
+    "connectionReferences": {
+      "shared_office365_1": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "new_sharedoffice365_23120"
+        },
+        "api": {
+          "name": "shared_office365"
+        }
+      }
+    },
+    "definition": {
+      "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+      "contentVersion": "1.0.0.0",
+      "parameters": {
+        "$connections": {
+          "defaultValue": {},
+          "type": "Object"
+        },
+        "$authentication": {
+          "defaultValue": {},
+          "type": "SecureObject"
+        },
+        "VTEOC-FailureNotificationEmail (new_FailureNotificationEmail)": {
+          "defaultValue": "shawk@devgh.onmicrosoft.com",
+          "type": "String",
+          "metadata": {
+            "schemaName": "new_FailureNotificationEmail"
+          }
+        }
+      },
+      "triggers": {
+        "manual": {
+          "metadata": {
+            "operationMetadataId": "621d8c42-36a4-4aec-b6a5-00524c52bdce"
+          },
+          "type": "Request",
+          "kind": "Button",
+          "inputs": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "text": {
+                  "title": "TeamName",
+                  "type": "string",
+                  "x-ms-dynamically-added": true,
+                  "description": "Team Name",
+                  "x-ms-content-hint": "TEXT"
+                },
+                "text_1": {
+                  "title": "TeamID",
+                  "type": "string",
+                  "x-ms-dynamically-added": true,
+                  "description": "TeamID",
+                  "x-ms-content-hint": "TEXT"
+                }
+              },
+              "required": [
+                "text",
+                "text_1"
+              ]
+            }
+          }
+        }
+      },
+      "actions": {
+        "Get_ARCGisToken": {
+          "runAfter": {
+            "Initialize_variable_definitelynotapassword": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "ddedd705-697b-4268-a82a-19d2b2444fe3"
+          },
+          "type": "Http",
+          "inputs": {
+            "method": "POST",
+            "uri": "https://ghis.maps.arcgis.com/sharing/rest/generateToken",
+            "headers": {
+              "Content-Type": "application/x-www-form-urlencoded"
+            },
+            "body": "f=json&username=GH-SolutionAccount&password=@{variables('definitelynotapassword')}&referer=https://ghis.maps.arcgis.com&expiration=20"
+          }
+        },
+        "Initialize_variable_definitelynotapassword": {
+          "runAfter": {},
+          "metadata": {
+            "operationMetadataId": "08f49f22-e79b-48a0-8d45-4e95084aa42b"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "definitelynotapassword",
+                "type": "string",
+                "value": "@{encodeUriComponent('G&HarcG1S!!!')}"
+              }
+            ]
+          }
+        },
+        "Parse_JSON": {
+          "runAfter": {
+            "Get_ARCGisToken": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "f621e66b-3a16-4ef3-bd76-1f89337c20b8"
+          },
+          "type": "ParseJson",
+          "inputs": {
+            "content": "@{body('Get_ARCGisToken')}{",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "token": {
+                  "type": "string"
+                },
+                "expires": {
+                  "type": "integer"
+                },
+                "ssl": {
+                  "type": "boolean"
+                }
+              }
+            }
+          }
+        },
+        "Create_ARCGis_SAML_Linked_Group": {
+          "runAfter": {
+            "Parse_JSON": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "e87773a8-f809-4f25-926a-0de49e9a8160"
+          },
+          "type": "Http",
+          "inputs": {
+            "method": "POST",
+            "uri": "https://ghis.maps.arcgis.com/sharing/rest/community/createGroup?title=@{triggerBody()['text']}&access=public&provider=enterpise&providerGroupName=@{triggerBody()['text_1']}&f=json&token=@{body('Parse_JSON')?['token']}"
+          }
+        },
+        "Respond_to_a_PowerApp_or_flow": {
+          "runAfter": {
+            "Create_ARCGis_SAML_Linked_Group": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "ea495495-201f-4486-9e74-a615ba1787f3"
+          },
+          "type": "Response",
+          "kind": "PowerApp",
+          "inputs": {
+            "statusCode": 200,
+            "body": {
+              "result": "ya did it buddy"
+            },
+            "schema": {
+              "type": "object",
+              "properties": {
+                "result": {
+                  "title": "result",
+                  "x-ms-dynamically-added": true,
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "Scope_Failure_Notifications_": {
+          "actions": {
+            "Compose_Flow_run_link_2": {
+              "runAfter": {},
+              "metadata": {
+                "operationMetadataId": "304e2c8e-c6d8-4bd0-ac4d-57951dd57763"
+              },
+              "type": "Compose",
+              "inputs": "@concat('https://us.flow.microsoft.com/manage/environments/', workflow()?['tags']?['environmentName'], '/flows/', workflow()?['name'], '/runs/', workflow()?['run']['name'])"
+            },
+            "Send_an_email_(V2)_Failure_notification_2": {
+              "runAfter": {
+                "Compose_Flow_run_link_2": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "bd4b39c2-3462-4a00-b21d-d8ac056f00d2"
+              },
+              "type": "OpenApiConnection",
+              "inputs": {
+                "host": {
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_office365",
+                  "connectionName": "shared_office365_1",
+                  "operationId": "SendEmailV2"
+                },
+                "parameters": {
+                  "emailMessage/To": "@parameters('VTEOC-FailureNotificationEmail (new_FailureNotificationEmail)')",
+                  "emailMessage/Subject": "Your @{workflow()?['tags']?['flowDisplayName']} flow failed",
+                  "emailMessage/Body": "<p>Check your flow.<br>\n<br>\n<a href=\"@{outputs('Compose_Flow_run_link_2')}\">Flow Run Link</a>&nbsp;</p>"
+                },
+                "authentication": {
+                  "value": "@json(decodeBase64(triggerOutputs().headers['X-MS-APIM-Tokens']))['$ConnectionKey']",
+                  "type": "Raw"
+                }
+              }
+            },
+            "Terminate_Mark_flow_run_failure_2": {
+              "runAfter": {
+                "Send_an_email_(V2)_Failure_notification_2": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "c3050a38-c258-4145-b3fa-4d5e80d70b67"
+              },
+              "type": "Terminate",
+              "inputs": {
+                "runStatus": "Failed"
+              }
+            }
+          },
+          "runAfter": {
+            "Respond_to_a_PowerApp_or_flow": [
+              "Failed",
+              "Skipped",
+              "TimedOut"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "072e1b99-2b98-4cdc-bb50-f9ef10d9a137"
+          },
+          "type": "Scope",
+          "description": "Set this Scope's Configure run after settings to \"has failed\", \"is skipped\", and \"has timed out\"."
+        }
+      }
+    },
+    "templateName": null
+  },
+  "schemaVersion": "1.0.0.0"
+}
